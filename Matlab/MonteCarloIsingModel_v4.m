@@ -1,6 +1,10 @@
 % Monte Carlo Ising Model
-tic
+% Ashley Dale
+% Calls the following matlab files: initializeLattice.m,
+% equilibrateSpins_H.m 
 
+%%
+tic
 clear;
 
 N = 200; % square root of number of spins
@@ -23,7 +27,7 @@ evolution = 5000;
 frameRate = 1;
 
 %results folder
-dat_str = '200328_movie_';
+dat_str = '200328_';
 dir_name = strcat(dat_str,num2str(N),'spins');
 mkdir(dir_name)
 mkdir(dir_name,'frames')
@@ -39,6 +43,7 @@ B1_img_name = strcat(dat_str, num2str(N),'spins_TotalMagnetism_1.png');
 
 
 for temp = 1:length(k)
+    %create figure to view data
     figure;
     
     temp_name = num2str(k(temp));
@@ -49,6 +54,7 @@ for temp = 1:length(k)
     %initialize 2D lattice
     spins = initializeLattice(N);
     
+    %copy spins for later comparison
     spins_last = spins;
     
     %let state reach equilibrium
@@ -56,40 +62,22 @@ for temp = 1:length(k)
         evolution, N, spins, k(temp), mu, h, H, J, frameRate, spins_last, dir_name);
     close all;
     
+    %save spin matrix to text file
     writematrix(spins,file_name);
+    
     toc
     
+    %show new spins matrix
     figure;
     imagesc(spins)
     axis square;
     saveas(gcf, image_name)
     
+    %add temp to legend for later plots
     plt_legend{temp} = num2str(k(temp));
     
 end
 
-%%
-% figure
-% plot(E)
-% hold on
-% %legend(plt_legend)
-% title("Total Energy vs Time")
-% xlabel("Evolutions (aka Time)")
-% ylabel("Energy: -J\Sigma\sigma_i \sigma_j")
-% hold off
-% saveas(gcf, strcat(dir_name,'/','totE','_','.png'))
-% writematrix(E, strcat(dir_name,'/','totE.txt'))
-%
-% figure
-% plot(B1)
-% hold on
-% %legend(plt_legend)
-% title("Spontaneous Magnetism Over Time")
-% xlabel("Evolutions (aka Time)")
-% ylabel("Magnetism: - \muH\Sigma\sigma_i")
-% hold off
-% saveas(gcf, strcat(dir_name,'/','totMag','_','.png'))
-% writematrix(B1, strcat(dir_name,'/','totB.txt'))
 %%
 close all
 

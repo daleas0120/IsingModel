@@ -1,5 +1,26 @@
-function [spins, E, B] = equilibrateSpins(...
+%equilabrateSpins_H.m
+%Ashley Dale
+
+%Cools a matrix of spins to a given temperature, and at various times saves
+%an image of the spin matrix to a file
+
+%time: an integer that determines how long the system cools
+%N: the square root of the number of spins
+%k: 1/temperature
+%mu: atomic magnetic moment
+%h:
+%H: external magnetic field
+%J: spin exchange coupling constant
+%frameRate: determines how frequently intermediate spin matrices are saved
+%to an image
+%spins_last: previous spin value
+%dir_name: where to save results
+
+function [spins, E, B] = equilibrateSpins_H(...
     time, N, spins, k, mu, h, H, J, frameRate, spins_last, dir_name)
+
+
+
 E = zeros(time, 1);
 B = zeros(time, 1);
 
@@ -42,23 +63,14 @@ for idx = 1:time% how many times to let the system evolve
     B(idx, 1) = mu*H*sum_Si;
     
     if mod(idx, frameRate) == 0
-        if spins_last == spins
-            %break
-            bp = 0;
-        else
-            frame_temp = num2str(k);
-            frame_name = num2str(idx);
-            frame_name = strcat(dir_name,'/frames/', frame_temp,'_', frame_name, ".png");
-            comp = spins; %- spins_last;
-            %figure;
-            imagesc(comp)
-            title(frame_name)
-            axis square;
-            saveas(gcf, frame_name)
-            bp = 0;
-            %close
-            spins_last = spins;
-        end
+        frame_temp = num2str(k);
+        frame_name = num2str(idx);
+        frame_name = strcat(dir_name,'/frames/', frame_temp,'_', frame_name, ".png");
+        comp = spins;
+        imagesc(comp)
+        title(frame_name)
+        axis square;
+        saveas(gcf, frame_name)
     end
     
 end

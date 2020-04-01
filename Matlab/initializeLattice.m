@@ -1,3 +1,7 @@
+%initializeLattice.m
+%Ashley Dale
+%creates a randomly initialized NxN lattice
+
 function spins = initializeLattice(N)
 spins = rand(N); %decide how many ones there are
 for idx = 1:N

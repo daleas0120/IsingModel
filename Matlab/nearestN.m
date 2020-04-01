@@ -1,3 +1,7 @@
+%nearestN.m
+%Ashley Dale
+%Sums over all nearest neighbors
+
 function Snn = nearestN(spins)
 Snn = 0;
 for i = 3:length(spins) - 2
