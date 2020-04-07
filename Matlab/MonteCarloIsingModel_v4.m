@@ -7,13 +7,13 @@
 tic
 clear;
 
-N = 200; % square root of number of spins
+N = 10; % square root of number of spins
 
-%k = 0.36:0.02:0.80;
-%k = [0.22 0.29 k 1 2];
-k = 0.44; 
+k = 0.36:0.01:0.80;
+k = [0.22 0.29 k 1 2 4];
+%k = 0.44; 
 
-%k_b = 1; %8.617333262*10^-5;
+k_b = 8.617333262*10^-5;
 J = 1; %coupling constant/exchange energy
 mu = 1; %atomic magnetic moment
 
@@ -23,12 +23,13 @@ h = 0; %magnetic field
 
 %Beta = 1./(k_b.*T);
 
-evolution = 5000;
-frameRate = 1;
+evolution = 1e6;
+frameRate = 1e6+1;
 
 %results folder
-dat_str = '200328_';
-dir_name = strcat(dat_str,num2str(N),'spins');
+home = cd;
+dat_str = '200403a_';
+dir_name = strcat(home, '\' , dat_str,num2str(N),'spins');
 mkdir(dir_name)
 mkdir(dir_name,'frames')
 
