@@ -8,7 +8,6 @@
 %N: the square root of the number of spins
 %k: 1/temperature
 %mu: atomic magnetic moment
-%h:
 %H: external magnetic field
 %J: spin exchange coupling constant
 %frameRate: determines how frequently intermediate spin matrices are saved
@@ -17,7 +16,7 @@
 %dir_name: where to save results
 
 function [spins, E, B] = equilibrateSpins_H(...
-    time, N, spins, k, mu, h, H, J, frameRate, spins_last, dir_name)
+    time, N, spins, k, mu, H, J, frameRate, spins_last, dir_name)
 
 
 
@@ -25,13 +24,13 @@ E = zeros(time, 1);
 B = zeros(time, 1);
 
 for idx = 1:time% how many times to let the system evolve
-    for row = 3:N+2
-        for col = 3:N+2
-            i = row;
-            j = col;
+    for row = 1:N
+        for col = 1:N
+            %i = row;
+            %j = col;
             
-            % = randi([3, N + 2]);
-            %j = randi([3, N + 2]);
+            i = randi([2, N-1]);
+            j = randi([2, N-1]);
             
             %pick spin and flip right away
             spins(i,j) = -1*spins(i,j);
@@ -40,27 +39,34 @@ for idx = 1:time% how many times to let the system evolve
                 spins(i,(j-1)) + spins(i,(j+1)));
             
             %then do change in energy with correct sign
-            dE = 2*spins(i,j) * (J*sum_nn + mu*h);
+            %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
+            dE = spins(i,j)*(2*J*sum_nn - (0.089 - k)*1.8);
             
             boltzConst = exp(dE*k);
+            p = exp(-1*dE*k);
             
+            if dE < 0
+                continue
+            elseif rand() > p
+                bp = 0;
+                spins(i,j) = -1*spins(i,j);
+            end
             %then check with random number; if state is acceptable,
             %keep and move on; if state is not acceptable then flip
             %sign back and try a different spin
             
-            r = rand(); %r is between 0 and 1
-            if boltzConst < r
-                % if boltzConst = inf then flip
-                spins(i,j) = -1*spins(i,j);
-            end
+            %r = rand(); %r is between 0 and 1
+            %if boltzConst < r
+            %    spins(i,j) = -1*spins(i,j);
+            %end
         end
     end
     
     Snn = nearestN(spins);
-    sum_Si = sum(spins, 'all');
+    sum_Si = sum(spins(2:N-1, 2:N-1), 'all');
     
     E(idx, 1) = -J*Snn;
-    B(idx, 1) = mu*H*sum_Si;
+    B(idx, 1) = mu*sum_Si;
     
     if mod(idx, frameRate) == 0
         frame_temp = num2str(k);
@@ -74,4 +80,7 @@ for idx = 1:time% how many times to let the system evolve
     end
     
 end
+E = mean(E);
+B = (mean(B)./(N*N));
+s_ave = tanh(k*mu*H + k*4*J);
 end

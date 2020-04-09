@@ -4,8 +4,8 @@
 
 function Snn = nearestN(spins)
 Snn = 0;
-for i = 3:length(spins) - 2
-    for j = 3:length(spins) - 2
+for i = 2:length(spins) - 1
+    for j = 2:length(spins) - 1
         Snn = Snn + spins(i,j)*(spins(i-1,j) + spins(i+1,j) +...
             spins(i,j-1) + spins(i,j+1));
     end
