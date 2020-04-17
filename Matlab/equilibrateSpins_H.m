@@ -16,10 +16,11 @@
 %dir_name: where to save results
 
 function [spins, E, B] = equilibrateSpins_H(...
-    time, N, spins, k, mu, H, J, frameRate, spins_last, dir_name)
+    time, N, spins, k, T, mu, H, J, big_delta, ln_g, ...
+    frameRate, spins_last, dir_name)
 
-
-
+set(0,'DefaultTextInterpreter','none')
+k_b = 8.617333262*10^-5;%eV/K
 E = zeros(time, 1);
 B = zeros(time, 1);
 
@@ -40,15 +41,14 @@ for idx = 1:time% how many times to let the system evolve
             
             %then do change in energy with correct sign
             %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-            dE = spins(i,j)*(2*J*sum_nn - (0.089 - k)*1.8);
+            dE = spins(i,j)*(2*J*sum_nn - (big_delta - k_b*T*ln_g));
             
             boltzConst = exp(dE*k);
             p = exp(-1*dE*k);
             
             if dE < 0
                 continue
-            elseif rand() > p
-                bp = 0;
+            elseif p < rand()
                 spins(i,j) = -1*spins(i,j);
             end
             %then check with random number; if state is acceptable,
@@ -69,12 +69,15 @@ for idx = 1:time% how many times to let the system evolve
     B(idx, 1) = mu*sum_Si;
     
     if mod(idx, frameRate) == 0
-        frame_temp = num2str(k);
+        frame_temp = num2str(J/(k*k_b));
         frame_name = num2str(idx);
-        frame_name = strcat(dir_name,'/frames/', frame_temp,'_', frame_name, ".png");
+        s = num2str(N);
+        frame_name = strcat(dir_name,'\frames\',s,'spins','_',...
+            frame_temp,'K_', frame_name, ".png");
         comp = spins;
         imagesc(comp)
         title(frame_name)
+        colorbar
         axis square;
         saveas(gcf, frame_name)
     end

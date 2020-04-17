@@ -7,24 +7,30 @@
 tic
 clear;
 
-k = 0.35:0.05:2;
-k = [k 3.5];
-%k = 0.44;
+k_b = 8.617333262*10^-5;%eV/K
+J_ev = 160*k_b; %coupling constant/exchange energy in eV -- should also be unitless
 
-k_b = 8.617333262*10^-6;%eV/K
-J = 0.001; %coupling constant/exchange energy in eV
 mu = 1; %atomic magnetic moment
 
-T = J./(k_b.*k);
-H = 0; %external magnetic field
-ln_g = 6; %degeneracy
-big_delta = 1300;
-beta = 1./(k_b.*T);
+%T = J./(k_b.*k);
 
-evo = 1e5;
-dataPts = 1.2e5;
-frameRate = 1.2e5 + 1;
-numTrials = 20;
+T = [1:25:501 501:-25:1]; %degrees Kelvin
+k = J_ev./(k_b.*T); % dimensionless temperature
+
+H = 0; %external magnetic field
+g = 6; %
+ln_g = log(g); %degeneracy
+%big_delta = J_ev/(1300*k_b); %ERROR: difference in energy between HS and LS 
+big_delta = 1300*k_b;
+
+beta = 1./(k_b.*T);
+%J = big_delta/8.125;
+J = J_ev;
+
+evo = 3e2;
+dataPts = 1e2;
+frameRate = 1e4;
+numTrials = 2;
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_', 'w_', ...
     'x_', 'y_', 'z_', 'A_', 'B_', 'C_', 'D_'};
@@ -37,15 +43,17 @@ Snn = zeros(1, length(k));
 %Magnetism output variables
 B = zeros(1, length(k));
 
-L = [4 7 10 40];
+L = [10, 30];
 
 for numSpins = 1:length(L)% square root of number of spins
     
     N = L(numSpins);
     
     %results folder
-    dat_str = '200408';
-    dir_name = strcat('..\..\' , dat_str,'_',num2str(N),'spins');
+    t = datetime('now');
+    t.Format = "yyMMddHHmmss";
+    dat_str = string(t);
+    dir_name = strcat('..\..\',dat_str,'_',num2str(N),'spins');
     mkdir(dir_name)
     mkdir(dir_name,'frames')
     
@@ -61,24 +69,29 @@ for numSpins = 1:length(L)% square root of number of spins
             %create figure to view spins
             %figure;
             
-            temp_name = num2str(k(temp));
-            file_name = strcat(dir_name,'/',dat_str, p_name{p}, num2str(N),...
-                'spins_k_', temp_name, '.txt')
-            image_name = strcat(dir_name,'/',dat_str, p_name{p},num2str(N),...
-                'spins_k_', temp_name, '.png');
+            temp_name = num2str(T(temp));
+            file_name = strcat(dir_name,'\',dat_str, p_name{p}, num2str(N),...
+                'spins_k_', temp_name, 'K.txt')
+            image_name = strcat(dir_name,'\',dat_str, p_name{p},num2str(N),...
+                'spins_k_', temp_name, 'K.png');
             m = 1;
             
             %copy spins for later comparison
             spins_last = spins;
             
+            
             %let state reach equilibrium
+            fprintf("Cooling...\n")
             [spins, ~, ~] = equilibrateSpins_H(...
-                evo, N, spins, k(temp), mu, H, J, frameRate, spins_last, dir_name);
+                evo, N, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
+                frameRate, spins_last, dir_name);
             close all;
             
             %take data
+            fprintf("Taking Data\n")
             [spins, E(p, temp), B(p, temp)] = equilibrateSpins_H(...
-                dataPts, N, spins, k(temp), mu, H, J, frameRate, spins_last, dir_name);
+                dataPts, N, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
+                frameRate, spins_last, dir_name);
             close all;
             
             %save spin matrix to text file
@@ -98,79 +111,97 @@ for numSpins = 1:length(L)% square root of number of spins
             n_HS(p, temp) = (1+meanS)/2;
             
         end
-        writematrix([T' n_HS'], strcat(dir_name,'/',dat_str,p_name{p},num2str(N),...
+        writematrix([T' n_HS'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
             'nHSvsT','_','.txt'));
-        writematrix([T' E'], strcat(dir_name,'/',dat_str,p_name{p},num2str(N),...
+        writematrix([T' E'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
             'EvsT','_','.txt'));
-        writematrix([T' B'], strcat(dir_name,'/',dat_str,p_name{p},num2str(N),...
+        writematrix([T' B'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
             'BvsT','_','.txt'));
+        toc
     end
-    toc
-    %%
-    meanB(numSpins, :) = abs(mean(B));
-    meanE(numSpins, :) = mean(E);
-    mean_nHS(numSpins, :) = mean(n_HS);
     
     %%
-    close all
-    
-    figure
-    plot(T, (meanB(numSpins, :)),"*-")
-    hold on
-    title("Magnetism vs Temperature")
-    xlabel("Temperature T (K)")
-    ylabel("Net Magnetism")
-    hold off
-    saveas(gcf, strcat(dir_name,'/',dat_str,num2str(N),'netMagvsT','.png'))
-    
-    figure
-    plot(T, meanE(numSpins, :), "*-")
-    hold on
-    title("Energy vs Temperature")
-    xlabel("Temperature T (K)")
-    ylabel("Energy")
-    hold off
-    saveas(gcf, strcat(dir_name,'/',dat_str,num2str(N),'netEvsT','.png'))
-    
-    figure
-    plot(T, mean_nHS(numSpins, :),'*-')
-    hold on
-    title("Calculated thermal dependence of the HS fraction")
-    xlabel("Temperature T (K)")
-    ylabel("n_H_S")
-    hold off
-    saveas(gcf, strcat(dir_name,'/',dat_str,num2str(N),'nHSvsT','.png'))
+    if numTrials > 1
+        
+        meanB(numSpins, :) = (mean(B));
+        meanE(numSpins, :) = mean(E);
+        mean_nHS(numSpins, :) = mean(n_HS);
+        
+        %%
+        close all
+        
+        figure
+        plot(T, (meanB(numSpins, :)),"*-")
+        hold on
+        title("Magnetism vs Temperature")
+        xlabel("Temperature T (K)")
+        ylabel("Net Magnetism")
+        hold off
+        saveas(gcf, strcat(dir_name,'\',dat_str,num2str(N),'netMagvsT','.png'))
+        
+        figure
+        plot(T, meanE(numSpins, :), "*-")
+        hold on
+        title("Energy vs Temperature")
+        xlabel("Temperature T (K)")
+        ylabel("Energy")
+        hold off
+        saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
+        
+        figure
+        plot(T, mean_nHS(numSpins, :),'*-')
+        hold on
+        title("Calculated thermal dependence of the HS fraction")
+        xlabel("Temperature T (K)")
+        ylabel("n_H_S")
+        hold off
+        saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'nHSvsT','.png'))
+    else 
+        figure
+        plot(T, B)
+        title("B")
+        
+        figure
+        plot(T, E)
+        title("E")
+        
+        figure
+        plot(T, n_HS)
+        title("n_H_S")
+    end
 end
 %%
-figure
-plot(T, meanB,"*-")
-hold on
-title('Averaged Magnetism vs Temperature')
-xlabel("Temperature T (K)")
-ylabel("Magnetism")
-legend('4 spins','7 spins', '10 spins', '40 spins')
-hold off
-saveas(gcf, strcat(dir_name,'/',dat_str,num2str(N),'avgMagvsT','.png'))
-
-figure
-plot(T, meanE,"*-")
-hold on
-title('Averaged Energy vs Temperature')
-xlabel("Temperature T (K)")
-ylabel("Energy")
-legend('4 spins','7 spins', '10 spins', '40 spins')
-hold off
-saveas(gcf, strcat(dir_name,'/',dat_str,num2str(N),'avgEvsT','.png'))
-
-figure
-plot(T, mean_nHS,"*-")
-hold on
-title('Averaged n_H_S vs Temperature')
-xlabel("Temperature T (K)")
-ylabel("n_H_S")
-legend('4 spins','7 spins', '10 spins', '40 spins')
-hold off
-saveas(gcf, strcat(dir_name,'/',dat_str,num2str(N),'avgnHSvsT','.png'))
+if length(L) > 1
+    figure
+    plot(T, meanB,"*-")
+    hold on
+    title('Averaged Magnetism vs Temperature')
+    xlabel("Temperature T (K)")
+    ylabel("Magnetism")
+    legend('4 spins','7 spins', '10 spins', '40 spins')
+    hold off
+    saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'avgMagvsT','.png'))
+    
+    figure
+    plot(T, meanE,"*-")
+    hold on
+    title('Averaged Energy vs Temperature')
+    xlabel("Temperature T (K)")
+    ylabel("Energy")
+    legend('4 spins','7 spins', '10 spins', '40 spins')
+    hold off
+    saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'avgEvsT','.png'))
+    
+    figure
+    plot(T, mean_nHS,"*-")
+    hold on
+    title('Averaged n_H_S vs Temperature')
+    xlabel("Temperature T (K)")
+    ylabel("n_H_S")
+    legend('4 spins','7 spins', '10 spins', '40 spins')
+    hold off
+    saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'avgnHSvsT','.png'))
+end
 
 %%
 function mean = aveS(N, spins)
