@@ -20,12 +20,12 @@ k = J_ev./(k_b.*T); % dimensionless temperature
 H = 0; %external magnetic field
 g = 6; %
 ln_g = log(g); %degeneracy
-%big_delta = J_ev/(1300*k_b); %ERROR: difference in energy between HS and LS 
+%big_delta = J_ev/(1300*k_b); %ERROR: difference in energy between HS and LS
 big_delta = 1300*k_b;
 
 beta = 1./(k_b.*T);
 %J = big_delta/8.125;
-J = J_ev;
+J = big_delta/8;
 
 evo = 3e2;
 dataPts = 1e2;
@@ -43,21 +43,22 @@ Snn = zeros(1, length(k));
 %Magnetism output variables
 B = zeros(1, length(k));
 
-L = [10, 30];
-
-for numSpins = 1:length(L)% square root of number of spins
+L = [4, 7, 10, 40];
+for p = 1:numTrials
     
-    N = L(numSpins);
-    
-    %results folder
-    t = datetime('now');
-    t.Format = "yyMMddHHmmss";
-    dat_str = string(t);
-    dir_name = strcat('..\..\',dat_str,'_',num2str(N),'spins');
-    mkdir(dir_name)
-    mkdir(dir_name,'frames')
-    
-    for p = 1:numTrials
+    for numSpins = 1:length(L)% square root of number of spins
+        
+        N = L(numSpins);
+        
+        %results folder
+        t = datetime('now');
+        t.Format = "yyMMddHHmmss";
+        dat_str = string(t);
+        dir_name = strcat('..\..\',dat_str,'_',num2str(N),'spins');
+        mkdir(dir_name)
+        mkdir(dir_name,'frames')
+        
+        
         %initialize 2D lattice
         spins = initializeLattice(N);
         figure;
@@ -89,7 +90,7 @@ for numSpins = 1:length(L)% square root of number of spins
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(p, temp), B(p, temp)] = equilibrateSpins_H(...
+            [spins, E(numSpins, temp, p), B(numSpins, temp, p)] = equilibrateSpins_H(...
                 dataPts, N, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
                 frameRate, spins_last, dir_name);
             close all;
@@ -108,68 +109,57 @@ for numSpins = 1:length(L)% square root of number of spins
             
             meanS = aveS(N, spins);
             
-            n_HS(p, temp) = (1+meanS)/2;
+            n_HS(numSpins, temp, p) = (1+meanS)/2;
             
         end
-        writematrix([T' n_HS'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
-            'nHSvsT','_','.txt'));
-        writematrix([T' E'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
-            'EvsT','_','.txt'));
-        writematrix([T' B'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
-            'BvsT','_','.txt'));
+        %writematrix([T' n_HS'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
+        %    'nHSvsT','_','.txt'));
+        %writematrix([T' E'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
+        %    'EvsT','_','.txt'));
         toc
     end
+end
+%%
+if numTrials > 1
+    
+    meanE(p, numSpins, :) = mean(E);
+    mean_nHS(p, numSpins, :) = mean(n_HS);
     
     %%
-    if numTrials > 1
-        
-        meanB(numSpins, :) = (mean(B));
-        meanE(numSpins, :) = mean(E);
-        mean_nHS(numSpins, :) = mean(n_HS);
-        
-        %%
-        close all
-        
-        figure
-        plot(T, (meanB(numSpins, :)),"*-")
-        hold on
-        title("Magnetism vs Temperature")
-        xlabel("Temperature T (K)")
-        ylabel("Net Magnetism")
-        hold off
-        saveas(gcf, strcat(dir_name,'\',dat_str,num2str(N),'netMagvsT','.png'))
-        
-        figure
-        plot(T, meanE(numSpins, :), "*-")
-        hold on
-        title("Energy vs Temperature")
-        xlabel("Temperature T (K)")
-        ylabel("Energy")
-        hold off
-        saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
-        
-        figure
-        plot(T, mean_nHS(numSpins, :),'*-')
-        hold on
-        title("Calculated thermal dependence of the HS fraction")
-        xlabel("Temperature T (K)")
-        ylabel("n_H_S")
-        hold off
-        saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'nHSvsT','.png'))
-    else 
-        figure
-        plot(T, B)
-        title("B")
-        
-        figure
-        plot(T, E)
-        title("E")
-        
-        figure
-        plot(T, n_HS)
-        title("n_H_S")
-    end
+    close all
+    
+    figure
+    plot(T, meanE(numSpins, :), "*-")
+    hold on
+    title("Energy vs Temperature")
+    xlabel("Temperature T (K)")
+    ylabel("Energy")
+    hold off
+    saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
+    
+    figure
+    plot(T, mean_nHS(numSpins, :),'*-')
+    hold on
+    title("Calculated thermal dependence of the HS fraction")
+    xlabel("Temperature T (K)")
+    ylabel("n_H_S")
+    hold off
+    saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'nHSvsT','.png'))
+else
+    figure
+    plot(T, B)
+    title("B")
+    
+    figure
+    plot(T, E)
+    title("E")
+    
+    figure
+    plot(T, n_HS)
+    title("n_H_S")
 end
+
+
 %%
 if length(L) > 1
     figure
@@ -201,8 +191,8 @@ if length(L) > 1
     legend('4 spins','7 spins', '10 spins', '40 spins')
     hold off
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'avgnHSvsT','.png'))
+    
 end
-
 %%
 function mean = aveS(N, spins)
 sum_Si = sum(spins(2:N-1, 2:N-1), 'all');
