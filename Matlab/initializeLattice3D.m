@@ -1,19 +1,24 @@
-%initializeLattice.m
+%initializeLattice3D.m
 %Ashley Dale
 %creates a randomly initialized NxN lattice
 
-function spins = initializeLattice(N,D)
-spins = rand(N); %decide how many ones there are
-for idx = 1:N
-    for jdx = 1:N
-        if (spins(idx, jdx) > 0.5)
-            spins(idx, jdx) = 1;
-        else
-            spins(idx, jdx) = (-1);
+function spinD = initializeLattice3D(N,D)
+
+spinD = ones(N);
+for kdx = 1:(D-2)
+    spins = rand(N-2); %decide how many ones there are
+    
+    for idx = 1:(N-2)
+        for jdx = 1:(N-2)
+            if (spins(idx, jdx) > 0.5)
+                spins(idx, jdx) = 1;
+            else
+                spins(idx, jdx) = (-1);
+            end
         end
     end
+    spins = padarray(spins,[1 1],1,'both');
+    spinD = cat(3,spinD, spins);
 end
-spins = padarray(spins,[2 2],0,'both');
-
-
+    spinD = cat(3, spinD, ones(N));
 end
