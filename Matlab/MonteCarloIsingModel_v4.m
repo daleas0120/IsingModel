@@ -1,7 +1,7 @@
 % Monte Carlo Ising Model
 % Ashley Dale
 % Calls the following matlab files: initializeLattice.m,
-% equilibrateSpins_H.m 
+% equilibrateSpins_H.m
 
 %%
 tic
@@ -9,9 +9,11 @@ clear;
 
 N = 10; % square root of number of spins
 
-k = 0.36:0.01:0.80;
-k = [0.22 0.29 k 1 2 4];
-%k = 0.44; 
+k_up = 0.36:0.01:0.80;
+k_down = 0.8:-0.01:0.36;
+
+k = [0.22 0.29 k_up 1 2 4 4 2 1 k_down 0.29 0.22];
+%k = 0.44;
 
 k_b = 8.617333262*10^-5;
 J = 1; %coupling constant/exchange energy
@@ -23,15 +25,17 @@ h = 0; %magnetic field
 
 %Beta = 1./(k_b.*T);
 
-evolution = 1e6;
-frameRate = 1e6+1;
+evolution = 1e4;
+frameRate = 1e4+1;
 
 %results folder
-home = cd;
-dat_str = '200403a_';
-dir_name = strcat(home, '\' , dat_str,num2str(N),'spins');
+t = datetime('now');
+t.Format = "yyMMddHHmmss";
+dat_str = string(t);
+dir_name = strcat('..\..\',dat_str,'_',num2str(N),'spins');
 mkdir(dir_name)
 mkdir(dir_name,'frames')
+
 
 %Energy output variables
 E = zeros(evolution, length(k));
@@ -41,7 +45,8 @@ Snn = zeros(1, length(k));
 %Magnetism output variables
 B = zeros(evolution, length(k));
 B1_img_name = strcat(dat_str, num2str(N),'spins_TotalMagnetism_1.png');
-
+%initialize 2D lattice
+spins = initializeLattice(N);
 
 for temp = 1:length(k)
     %create figure to view data
@@ -51,9 +56,6 @@ for temp = 1:length(k)
     file_name = strcat(dir_name,'/',dat_str, num2str(N),'spins_k_', temp_name, '.txt');
     image_name = strcat(dir_name,'/',dat_str, num2str(N),'spins_k_', temp_name, '.png');
     m = 1;
-    
-    %initialize 2D lattice
-    spins = initializeLattice(N);
     
     %copy spins for later comparison
     spins_last = spins;
@@ -69,10 +71,10 @@ for temp = 1:length(k)
     toc
     
     %show new spins matrix
-    figure;
-    imagesc(spins)
-    axis square;
-    saveas(gcf, image_name)
+    %figure;
+    %imagesc(spins)
+    %axis square;
+    %saveas(gcf, image_name)
     
     %add temp to legend for later plots
     plt_legend{temp} = num2str(k(temp));
@@ -80,7 +82,7 @@ for temp = 1:length(k)
 end
 
 %%
-close all
+%close all
 
 figure
 plot(T, abs(mean(B)./(N*N)),"*-")
