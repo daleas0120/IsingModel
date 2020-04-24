@@ -14,23 +14,25 @@ mu = 1; %atomic magnetic moment
 
 %T = J./(k_b.*k);
 
-T = [1:25:501 501:-25:1]; %degrees Kelvin
+%T = [1:25:501 501:-25:1]; %degrees Kelvin
+T = [1:5:101 101:-5:1];
 k = J_ev./(k_b.*T); % dimensionless temperature
 
 H = 0; %external magnetic field
 g = 6; %
 ln_g = log(g); %degeneracy
 %big_delta = J_ev/(1300*k_b); %ERROR: difference in energy between HS and LS
-big_delta = 1300*k_b;
+%big_delta = 1300*k_b;
+big_delta = 8.5;
 
 beta = 1./(k_b.*T);
 %J = big_delta/8.125;
 J = big_delta/8;
 
-evo = 3e2;
-dataPts = 1e2;
-frameRate = 1e4;
-numTrials = 2;
+evo = 5e3;
+dataPts = 5e3;
+frameRate = 5001;
+numTrials = 3;
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_', 'w_', ...
     'x_', 'y_', 'z_', 'A_', 'B_', 'C_', 'D_'};
@@ -43,7 +45,9 @@ Snn = zeros(1, length(k));
 %Magnetism output variables
 B = zeros(1, length(k));
 
-L = [4, 7, 10, 40];
+%L = [4, 7, 10, 40];
+L = [4,7,10,40,100];
+
 for p = 1:numTrials
     
     for numSpins = 1:length(L)% square root of number of spins
@@ -60,12 +64,19 @@ for p = 1:numTrials
         
         
         %initialize 2D lattice
-        spins = initializeLattice(N);
+        %spins = initializeLattice(N);
+        
+        spins = ones(N);
+        spins(2:N-1, 2:N-1) = -1*spins(2:N-1, 2:N-1)
+        meanS = aveS(N, spins);
+        tmp = (1+meanS)/2;
+        
         figure;
         imagesc(spins)
         axis square
         title("Initial Lattice")
         
+        figure;
         for temp = 1:length(k)
             %create figure to view spins
             %figure;
@@ -80,20 +91,19 @@ for p = 1:numTrials
             %copy spins for later comparison
             spins_last = spins;
             
-            
             %let state reach equilibrium
             fprintf("Cooling...\n")
             [spins, ~, ~] = equilibrateSpins_H(...
                 evo, N, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
                 frameRate, spins_last, dir_name);
-            close all;
+            %close all;
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(numSpins, temp, p), B(numSpins, temp, p)] = equilibrateSpins_H(...
+            [spins, E(p, temp, numSpins), B(p, temp, numSpins)] = equilibrateSpins_H(...
                 dataPts, N, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
                 frameRate, spins_last, dir_name);
-            close all;
+            close;
             
             %save spin matrix to text file
             %writematrix(spins,file_name);
@@ -109,27 +119,23 @@ for p = 1:numTrials
             
             meanS = aveS(N, spins);
             
-            n_HS(numSpins, temp, p) = (1+meanS)/2;
+            n_HS(p, temp, numSpins) = (1+meanS)/2;
             
         end
-        %writematrix([T' n_HS'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
-        %    'nHSvsT','_','.txt'));
-        %writematrix([T' E'], strcat(dir_name,'\',dat_str,p_name{p},num2str(N),...
-        %    'EvsT','_','.txt'));
         toc
     end
 end
 %%
 if numTrials > 1
     
-    meanE(p, numSpins, :) = mean(E);
-    mean_nHS(p, numSpins, :) = mean(n_HS);
+    meanE = squeeze(mean(E));
+    mean_nHS = squeeze(mean(n_HS))';
     
     %%
     close all
     
     figure
-    plot(T, meanE(numSpins, :), "*-")
+    plot(T, meanE', "*-")
     hold on
     title("Energy vs Temperature")
     xlabel("Temperature T (K)")
@@ -138,7 +144,7 @@ if numTrials > 1
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
     
     figure
-    plot(T, mean_nHS(numSpins, :),'*-')
+    plot(T, mean_nHS,'*-')
     hold on
     title("Calculated thermal dependence of the HS fraction")
     xlabel("Temperature T (K)")
@@ -146,9 +152,6 @@ if numTrials > 1
     hold off
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'nHSvsT','.png'))
 else
-    figure
-    plot(T, B)
-    title("B")
     
     figure
     plot(T, E)
@@ -162,15 +165,6 @@ end
 
 %%
 if length(L) > 1
-    figure
-    plot(T, meanB,"*-")
-    hold on
-    title('Averaged Magnetism vs Temperature')
-    xlabel("Temperature T (K)")
-    ylabel("Magnetism")
-    legend('4 spins','7 spins', '10 spins', '40 spins')
-    hold off
-    saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'avgMagvsT','.png'))
     
     figure
     plot(T, meanE,"*-")

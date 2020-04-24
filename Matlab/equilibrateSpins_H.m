@@ -23,42 +23,51 @@ set(0,'DefaultTextInterpreter','none')
 k_b = 8.617333262*10^-5;%eV/K
 E = zeros(time, 1);
 B = zeros(time, 1);
-
 for idx = 1:time% how many times to let the system evolve
-    for row = 1:N
-        for col = 1:N
-            %i = row;
-            %j = col;
-            
-            i = randi([2, N-1]);
-            j = randi([2, N-1]);
-            
-            %pick spin and flip right away
-            spins(i,j) = -1*spins(i,j);
-            
-            sum_nn = (spins((i-1),j) + spins((i+1),j) +...
-                spins(i,(j-1)) + spins(i,(j+1)));
-            
-            %then do change in energy with correct sign
-            %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-            dE = spins(i,j)*(2*J*sum_nn - (big_delta - k_b*T*ln_g));
-            
-            boltzConst = exp(dE*k);
-            p = exp(-1*dE*k);
-            
-            if dE < 0
-                continue
-            elseif p < rand()
-                spins(i,j) = -1*spins(i,j);
+    for row = 2:N-1
+        for col = 2:N-1
+            i = row;
+            j = col;
+            if N > 2
+                %i = randi([2, N-1]);
+                %j = randi([2, N-1]);
+                
+                %pick spin and flip right away
+                %spins(i,j) = -1*spins(i,j);
+                S = -1*spins(i,j);
+                delta_sig = S - spins(i,j);
+                
+                
+                spins(i, j) = -1*spins(i,j);
+                
+                sum_nn = (spins((i-1),j) + spins((i+1),j) +...
+                    spins(i,(j-1)) + spins(i,(j+1)));
+                
+                %then do change in energy with correct sign
+                %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
+                %dE = spins(i,j)*(2*J*sum_nn - (big_delta - k_b*T*ln_g));
+                %dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - k_b*T*ln_g/2));
+                E1 = spins(i,j)*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*spins(i,j);
+                E2 = (-1*spins(i,j))*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*(-1*spins(i,j));
+                dE = E2 - E1;
+                
+                boltzConst = exp(dE*k);
+                p = exp(-1*dE*k);
+                
+                if dE < 0
+                    continue
+                elseif p < rand()
+                    spins(i,j) = -1*spins(i,j);
+                end
+                %then check with random number; if state is acceptable,
+                %keep and move on; if state is not acceptable then flip
+                %sign back and try a different spin
+                
+                %r = rand(); %r is between 0 and 1
+                %if boltzConst < r
+                %    spins(i,j) = -1*spins(i,j);
+                %end
             end
-            %then check with random number; if state is acceptable,
-            %keep and move on; if state is not acceptable then flip
-            %sign back and try a different spin
-            
-            %r = rand(); %r is between 0 and 1
-            %if boltzConst < r
-            %    spins(i,j) = -1*spins(i,j);
-            %end
         end
     end
     
@@ -69,7 +78,7 @@ for idx = 1:time% how many times to let the system evolve
     B(idx, 1) = mu*sum_Si;
     
     if mod(idx, frameRate) == 0
-        frame_temp = num2str(J/(k*k_b));
+        frame_temp = num2str(T);
         frame_name = num2str(idx);
         s = num2str(N);
         frame_name = strcat(dir_name,'\frames\',s,'spins','_',...
@@ -79,10 +88,12 @@ for idx = 1:time% how many times to let the system evolve
         title(frame_name)
         colorbar
         axis square;
+        pause(0.1);
         saveas(gcf, frame_name)
     end
     
 end
+
 E = mean(E);
 B = (mean(B)./(N*N));
 s_ave = tanh(k*mu*H + k*4*J);
