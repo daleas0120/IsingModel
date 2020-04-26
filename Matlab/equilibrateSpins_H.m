@@ -35,15 +35,11 @@ for idx = 1:time% how many times to let the system evolve
         for col = 2:N-1
             i = row;
             j = col;
-            if N > 2
-                %i = randi([2, N-1]);
-                %j = randi([2, N-1]);
-                
+            
+            if N > 2      
                 %pick spin and flip right away
                 %spins(i,j) = -1*spins(i,j);
-                
-                T_ev = T*k_b;
-                
+              
                 S = -1*spins(i,j);
                 delta_sig = S - spins(i,j);
                 
@@ -54,14 +50,12 @@ for idx = 1:time% how many times to let the system evolve
                 
                 %then do change in energy with correct sign
                 %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-                %dE = spins(i,j)*(2*J*sum_nn - (big_delta - k_b*T*ln_g));
                 dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2));
                 
                 %E1 = spins(i,j)*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*spins(i,j);
                 %E2 = (-1*spins(i,j))*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*(-1*spins(i,j));
                 %dE = E2 - E1;
                 
-                boltzConst = exp(dE/T);
                 p = exp(-1*dE/T);
                 
                 if dE < 0 || p > rand()
@@ -74,10 +68,6 @@ for idx = 1:time% how many times to let the system evolve
                 %keep and move on; if state is not acceptable then flip
                 %sign back and try a different spin
                 
-                %r = rand(); %r is between 0 and 1
-                %if boltzConst < r
-                %    spins(i,j) = -1*spins(i,j);
-                %end
             end
         end
     end
@@ -92,7 +82,7 @@ for idx = 1:time% how many times to let the system evolve
     if mod(idx, frameRate) == 0
         pltTitle = strcat(num2str(N),'spins','_',num2str(T),'K_', num2str(idx));
         imagesc(spins)
-        title(frame_name)
+        title(pltTitle)
         colorbar
         axis square;
         pause(0.05);

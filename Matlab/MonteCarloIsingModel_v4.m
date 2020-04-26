@@ -11,10 +11,9 @@ k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
 J = 160;%K
-T = [51:5:301 301:-2:1];%K
+T = [50:2:300 300:-2:50];%K
 big_delta = 1300;%K
 ln_g = 6; %ratio of degeneracy HS to LS
-%ln_g = log(g); %degeneracy ratio
 
 J_ev = J*k_b; %coupling constant/exchange energy in eV
 T_ev = T.*k_b;
@@ -24,21 +23,19 @@ k = J_ev./(k_b.*T); % dimensionless inverse temperature
 
 H = 0; %external magnetic field
 
-big_delta = 1300*k_b;
-
 %% DIMENSIONLESS UNITS
 
-big_delta = (k_b*1300)/J_ev;
+big_delta = (k_b*big_delta)/J_ev;
 T = (k_b.*T)./J_ev;
 J = J_ev/J_ev;
 
 T_inv = (J_ev.*T)./k_b;
 
 %%
-evo = 5e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = 5e2; %number of MC steps to evaluate the system
-frameRate = 1000; % provides a modulus to save snapshot of system
-numTrials = 10; %number of times to repeat the experiment
+evo = 1e3; %number of MC steps to let the system burn in; this is discarded
+dataPts = 1e3; %number of MC steps to evaluate the system
+frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
+numTrials = 2; %number of times to repeat the experiment
 
 % naming system for the files and folders holding data from repeated trials
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
@@ -58,8 +55,8 @@ B = zeros(1, length(k));
 %Spin fraction output variables
 n_HS = zeros(1, length(k));
 
-L = [4, 7, 10, 40];
-%L = [3];
+L = [4, 7, 10, 40, 200];
+%L = [10];
 
 for p = 1:numTrials
     
@@ -109,15 +106,15 @@ for p = 1:numTrials
             spins_last = spins;
             
             %let state reach equilibrium
-            X = sprintf('Cooling %d spins to temp %f ....',N, T(temp));
+            X = sprintf('Cooling %d spins to temp %f ....',N, T_inv(temp));
             disp(X)
-            [spins, ~, ~] = equilibrateSpins_H(...
+            [spins, ~, ~, ~] = equilibrateSpins_H(...
                 evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
                 frameRate, dir_name, saveIntResults);
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), B(p, temp, numSpins), n_HS(p, temp, numSpins)] = ...
+            [spins, E(p, temp, numSpins), ~, n_HS(p, temp, numSpins)] = ...
                 equilibrateSpins_H(...
                 dataPts, spins, k(temp), T(temp), mu, H, J, ...
                 big_delta, ln_g, ...
@@ -150,6 +147,7 @@ end
 %% PLOTTING
 
 legArr = makeLegend(L);
+set(0,'DefaultTextInterpreter','none')
 
 if numTrials > 1
     
@@ -184,9 +182,15 @@ else
     %plot(T, E)
     %title("E")
     
-    %figure
-    %plot(T, n_HS)
-    %title("n_H_S")
+    figure
+    plot(T, n_HS)
+    hold on
+    title("n_H_S")
+    xlabel("Temperature T (K)")
+    ylabel("n_H_S")
+    legend(legArr,'Location','southeast')
+    hold off
+    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_','nHSvsT','.png'))
 end
 
 
