@@ -11,7 +11,7 @@ k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
 J = 160;%K
-T = [50:2:300 300:-2:50];%K
+T = [1:20:301 301:-20:1];%K
 big_delta = 1300;%K
 ln_g = 6; %ratio of degeneracy HS to LS
 
@@ -32,9 +32,9 @@ J = J_ev/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
 %%
-evo = 1e3; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1e3; %number of MC steps to evaluate the system
-frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
+evo = 2e2; %number of MC steps to let the system burn in; this is discarded
+dataPts = 2e2; %number of MC steps to evaluate the system
+frameRate = 250; % provides a modulus to save snapshot of system
 numTrials = 2; %number of times to repeat the experiment
 
 % naming system for the files and folders holding data from repeated trials
@@ -43,7 +43,7 @@ p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'x_', 'y_', 'z_', 'A_', 'B_', 'C_', 'D_'};
 
 % save intermediate results:
-saveIntResults = false;
+saveIntResults = true;
 
 %Energy output variables
 E = zeros(1, length(k));
@@ -55,15 +55,16 @@ B = zeros(1, length(k));
 %Spin fraction output variables
 n_HS = zeros(1, length(k));
 
-L = [4, 7, 10, 40, 200];
-%L = [10];
+%L = [4, 7, 10, 40];
+L = [4, 7, 10, 40];
+D = 4;
 
 for p = 1:numTrials
     
     if numTrials>1 || ~saveIntResults
         % save all trials in a single directory at highest level
         t = datetime('now');
-        t.Format = "yyMMdd";
+        t.Format = "yyMMddHHss";
         tryName = num2str(numTrials);
         dat_str0 = string(t);
         trial_dir = strcat('..\..\',dat_str0,'_',tryName,'_3DtrialRuns');
@@ -90,11 +91,16 @@ for p = 1:numTrials
         end
         
         %initialize 2D lattice
-        spins = initializeLattice3D(N); %randomly initializes 2D lattice
+        spins = initializeLattice3D(N,D); %randomly initializes 3D lattice
         
         % View initial lattice
+        %%{
+        figure
         spinVis(spins)
-        
+        axis equal
+        pause(1)
+        close
+        %}
         figure;
         
         for temp = 1:length(k)
@@ -104,14 +110,14 @@ for p = 1:numTrials
             %let state reach equilibrium
             X = sprintf('Cooling %d spins to temp %f ....',N, T_inv(temp));
             disp(X)
-            [spins, ~, ~, ~] = equilibrateSpins_H(...
+            [spins, ~, ~, ~] = equilibrateSpins_3D(...
                 evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
                 frameRate, dir_name, saveIntResults);
             
             %take data
             fprintf("Taking Data\n")
             [spins, E(p, temp, numSpins), ~, n_HS(p, temp, numSpins)] = ...
-                equilibrateSpins_H(...
+                equilibrateSpins_3D(...
                 dataPts, spins, k(temp), T(temp), mu, H, J, ...
                 big_delta, ln_g, ...
                 frameRate, dir_name, saveIntResults);
@@ -130,7 +136,7 @@ for p = 1:numTrials
                 
                 %save final spin
                 figure;
-                imagesc(spins)
+                spinVis(spins)
                 axis square;
                 saveas(gcf, image_name);
                 close
@@ -142,7 +148,7 @@ end
 
 %% PLOTTING
 
-legArr = makeLegend(L);
+legArr = makeLegend(L, D);
 set(0,'DefaultTextInterpreter','none')
 
 if numTrials > 1
@@ -189,10 +195,10 @@ else
     saveas(gcf, strcat(trial_dir,'\',dat_str0,'_','nHSvsT','.png'))
 end
 
-function legArr = makeLegend(L)
+function legArr = makeLegend(L,D)
 %returns a legend given an array of lattice sizes
 
 for idx = 1:max(size(L))
-    legArr{idx} = strcat(num2str(L(idx)),'x',num2str(L(idx)),' spins');
+    legArr{idx} = strcat(num2str(L(idx)),'x',num2str(L(idx)),'x',num2str(D),' spins');
 end
 end

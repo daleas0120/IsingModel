@@ -28,13 +28,13 @@ function [spins, E, B, nHS] = equilibrateSpins_H(...
     E = zeros(time, 1);
     B = zeros(time, 1);
     nHS = zeros(time, 1);
-    N = max(size(spins));
+    [N, ~, D] = size(spins);
     
     for idx = 1:time% how many times to let the system evolve
         if N > 2
             for xAxis = 2:N-1
                 for yAxis = 2:N-1
-                    for zAxis = 2:N-1
+                    for zAxis = 2:D-1
                         i = xAxis;
                         j = yAxis;
                         k = zAxis;
@@ -62,7 +62,7 @@ function [spins, E, B, nHS] = equilibrateSpins_H(...
                         if dE < 0 || p > rand()
                             continue
                         else
-                            spins(i,j) = -1*spins(i,j);
+                            spins(i,j,k) = -1*spins(i,j,k);
                         end
                         
                         %then check with random number; if state is acceptable,
@@ -75,18 +75,17 @@ function [spins, E, B, nHS] = equilibrateSpins_H(...
         end
         
         Snn = nearestN3D(spins);
-        sum_Si = sum(spins(2:N-1, 2:N-1, 2:N-1), 'all');
+        sum_Si = sum(spins(2:N-1, 2:N-1, 2:D-1), 'all');
         
         E(idx, 1) = -J*Snn;
         B(idx, 1) = mu*sum_Si;
-        nHS(idx, 1) = n_HSfrac(N, spins);
+        nHS(idx, 1) = n_HSfrac3D(spins);
         
         if mod(idx, frameRate) == 0
-            pltTitle = strcat(num2str(N),'spins','_',num2str(T),'K_', num2str(idx));
-            imagesc(spins)
+            pltTitle = strcat(num2str(N),'spins','_T=',num2str(T),'_', num2str(idx));
+            spinVis(spins)
             title(pltTitle)
-            colorbar
-            axis square;
+            axis equal;
             pause(0.05);
             if saveIntResults
                 frame_name = strcat(dir_name,'\frames\',pltTitle,".png");

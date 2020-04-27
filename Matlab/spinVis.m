@@ -5,8 +5,6 @@ Visualizes a spin lattice
 %}
 function spinVis(spinD)
 [m, n, p] = size(spinD);
-figure
-
 for i = 1:m
     for j = 1:n
         for k = 1:p
@@ -23,7 +21,7 @@ for i = 1:m
     end
 end
 grid on
-axis square
+axis equal
 hold off
 
 end

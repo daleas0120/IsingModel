@@ -5,11 +5,11 @@ function Snn = nearestN3D(spins)
 %Ashley Dale
 %Sums over all nearest neighbors in 3D
 %}
-
+[N, ~, D] = size(spins);
 Snn = 0;
-for i = 2:length(spins) - 1
-    for j = 2:length(spins) - 1
-        for k = 2:length(spins) - 1
+for i = 2:N - 1
+    for j = 2:N - 1
+        for k = 2:D - 1
             Snn = Snn + ...
                 spins(i, j, k)*(...
                 spins(i-1, j, k) +...

@@ -1,13 +1,14 @@
+function spinD = initializeLattice3D(N,D)
+%{
 %initializeLattice3D.m
 %Ashley Dale
 %creates a randomly initialized NxN lattice
 
-function spinD = initializeLattice3D(N,D)
+%}
 
 spinD = ones(N);
 for kdx = 1:(D-2)
     spins = rand(N-2); %decide how many ones there are
-    
     for idx = 1:(N-2)
         for jdx = 1:(N-2)
             if (spins(idx, jdx) > 0.5)
