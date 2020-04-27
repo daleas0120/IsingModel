@@ -11,10 +11,10 @@ for i = 1:m
     for j = 1:n
         for k = 1:p
             if spinD(i,j,k) == 1
-                argC = 'b';
+                argC = 'r';
                 argS = '^';
             else
-                argC = 'r';
+                argC = 'k';
                 argS = 'v';
             end
             plot3(i,j,k,argS,'Color', argC, 'MarkerFaceColor',argC)

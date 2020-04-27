@@ -1,0 +1,26 @@
+
+function Snn = nearestN3D(spins)
+%{
+%nearestN3D.m
+%Ashley Dale
+%Sums over all nearest neighbors in 3D
+%}
+
+Snn = 0;
+for i = 2:length(spins) - 1
+    for j = 2:length(spins) - 1
+        for k = 2:length(spins) - 1
+            Snn = Snn + ...
+                spins(i, j, k)*(...
+                spins(i-1, j, k) +...
+                spins(i+1, j, k) +...
+                spins(i, j-1, k) +...
+                spins(i, j+1, k) +...
+                spins(i, j, k-1) +...
+                spins(i, j, k+1));
+        end
+    end
+end
+%because we visit each spin 4 times, need to divide total interaction by 4
+Snn = Snn/6;
+end

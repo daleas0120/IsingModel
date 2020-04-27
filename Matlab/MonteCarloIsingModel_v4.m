@@ -7,102 +7,198 @@
 tic
 clear;
 
-N = 10; % square root of number of spins
-
-k = 0.36:0.01:0.80;
-k = [0.22 0.29 k 1 2 4];
-%k = 0.44;
-
-k_b = 8.617333262*10^-5;
-J = 1; %coupling constant/exchange energy
+k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-T = 0.44./k;%[0.001 0.01 0.1 10 100 1000];
-H = 1; %external magnetic field
-h = 0; %magnetic field
+J = 160;%K
+T = [50:2:300 300:-2:50];%K
+big_delta = 1300;%K
+ln_g = 6; %ratio of degeneracy HS to LS
 
-%Beta = 1./(k_b.*T);
+J_ev = J*k_b; %coupling constant/exchange energy in eV
+T_ev = T.*k_b;
+bD_ev = big_delta*k_b;
 
-evolution = 1e6;
-frameRate = 1e6+1;
+k = J_ev./(k_b.*T); % dimensionless inverse temperature
 
+H = 0; %external magnetic field
 
+%% DIMENSIONLESS UNITS
 
-%Energy output variables
-E = zeros(evolution, length(k));
-E_img_name = strcat(dat_str, num2str(N),'spins_TotalEnergy');
-Snn = zeros(1, length(k));
+big_delta = (k_b*big_delta)/J_ev;
+T = (k_b.*T)./J_ev;
+J = J_ev/J_ev;
 
-%Magnetism output variables
-B = zeros(evolution, length(k));
-B1_img_name = strcat(dat_str, num2str(N),'spins_TotalMagnetism_1.png');
+T_inv = (J_ev.*T)./k_b;
 
+%%
+evo = 1e3; %number of MC steps to let the system burn in; this is discarded
+dataPts = 1e3; %number of MC steps to evaluate the system
+frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
+numTrials = 2; %number of times to repeat the experiment
+
+% naming system for the files and folders holding data from repeated trials
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_', 'w_', ...
     'x_', 'y_', 'z_', 'A_', 'B_', 'C_', 'D_'};
 
-%results folder
-t = datetime('now');
-t.Format = "yyMMddHHmmss";
-dat_str = string(t);
-dir_name = strcat('..\..\',dat_str,'_',num2str(N),'spins');
-mkdir(dir_name)
-mkdir(dir_name,'frames')
+% save intermediate results:
+saveIntResults = false;
 
+%Energy output variables
+E = zeros(1, length(k));
+Snn = zeros(1, length(k));
 
-for temp = 1:length(k)
-    %create figure to view data
-    figure;
+%Magnetism output variables
+B = zeros(1, length(k));
+
+%Spin fraction output variables
+n_HS = zeros(1, length(k));
+
+L = [4, 7, 10, 40, 200];
+%L = [10];
+
+for p = 1:numTrials
     
-    temp_name = num2str(k(temp));
-    file_name = strcat(dir_name,'/',dat_str, num2str(N),'spins_k_', temp_name, '.txt');
-    image_name = strcat(dir_name,'/',dat_str, num2str(N),'spins_k_', temp_name, '.png');
-    m = 1;
+    if numTrials>1 || ~saveIntResults
+        % save all trials in a single directory at highest level
+        t = datetime('now');
+        t.Format = "yyMMdd";
+        tryName = num2str(numTrials);
+        dat_str0 = string(t);
+        trial_dir = strcat('..\..\',dat_str0,'_',tryName,'trialRuns');
+        mkdir(trial_dir)
+    else
+        % no group directory required
+        trial_dir = '..\..';
+    end
     
-    %initialize 2D lattice
-    spins = initializeLattice(N);
-    
-    %copy spins for later comparison
-    spins_last = spins;
-    
-    %let state reach equilibrium
-    [spins, E(:, temp), B(:, temp)] = equilibrateSpins_H(...
-        evolution, N, spins, k(temp), mu, h, H, J, frameRate, spins_last, dir_name);
-    close all;
-    
-    %save spin matrix to text file
-    writematrix(spins,file_name);
-    
-    toc
-    
-    %show new spins matrix
-    figure;
-    imagesc(spins)
-    axis square;
-    saveas(gcf, image_name)
-    
-    %add temp to legend for later plots
-    plt_legend{temp} = num2str(k(temp));
-    
+    for numSpins = 1:length(L)% square root of number of spins
+        
+        N = L(numSpins);
+        
+        %results folder for this particular data run
+        if saveIntResults
+            t = datetime('now');
+            t.Format = "yyMMdd";
+            dat_str = string(t);
+            dir_name = strcat(trial_dir,'\',dat_str,p_name{p},'_',num2str(N),'spins');
+            mkdir(dir_name)
+            mkdir(dir_name,'frames')
+        else
+            dir_name = "";
+        end
+        
+        %initialize 2D lattice
+        spins = initializeLattice(N); %randomly initializes 2D lattice
+        
+        % View initial lattice
+        %{
+        figure;
+        imagesc(spins)
+        axis square
+        title("Initial Lattice")
+        %}
+        figure;
+        
+        for temp = 1:length(k)
+            %copy spins for later comparison
+            spins_last = spins;
+            
+            %let state reach equilibrium
+            X = sprintf('Cooling %d spins to temp %f ....',N, T_inv(temp));
+            disp(X)
+            [spins, ~, ~, ~] = equilibrateSpins_H(...
+                evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
+                frameRate, dir_name, saveIntResults);
+            
+            %take data
+            fprintf("Taking Data\n")
+            [spins, E(p, temp, numSpins), ~, n_HS(p, temp, numSpins)] = ...
+                equilibrateSpins_H(...
+                dataPts, spins, k(temp), T(temp), mu, H, J, ...
+                big_delta, ln_g, ...
+                frameRate, dir_name, saveIntResults);
+            
+            close;
+            
+            if saveIntResults
+                
+                file_name = strcat(dir_name,'\',dat_str, p_name{p}, num2str(N),...
+                    'spins_k_', num2str(T(temp)), 'K.txt');
+                image_name = strcat(dir_name,'\',dat_str, p_name{p},num2str(N),...
+                    'spins_k_', num2str(T(temp)), 'K.png');
+                
+                %save spin matrix to text file
+                writematrix(spins,file_name);
+                
+                %save final spin
+                figure;
+                imagesc(spins)
+                axis square;
+                saveas(gcf, image_name);
+                close
+            end
+        end
+        toc
+    end
 end
 
-%%
-close all
+%% PLOTTING
 
-figure
-plot(T, abs(mean(B)./(N*N)),"*-")
-hold on
-title("Net Magnetism vs Temperature")
-xlabel("Temperature T/T_c")
-ylabel("Net Magnetism")
-hold off
-saveas(gcf, strcat(dir_name,'/','netMagvsT','_','.png'))
+legArr = makeLegend(L);
+set(0,'DefaultTextInterpreter','none')
 
-figure
-plot(T, (0.44.*mean(E))./(N*N), "*-")
-hold on
-title("Net Energy vs Temperature")
-xlabel("Temperature T/T_c")
-ylabel("Net Energy")
-hold off
-saveas(gcf, strcat(dir_name,'/','netEvsT','_','.png'))
+if numTrials > 1
+    
+    meanE = squeeze(mean(E));
+    mean_nHS = squeeze(mean(n_HS))';
+    
+    
+    %%
+    close all
+    %{
+    figure
+    plot(T, meanE', "*-")
+    hold on
+    title("Energy vs Temperature")
+    xlabel("Temperature T (K)")
+    ylabel("Energy")
+    hold off
+    saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
+    %}
+    figure
+    plot(T_inv, mean_nHS,'*-')
+    hold on
+    title("Calculated thermal dependence of the HS fraction")
+    xlabel("Temperature T (K)")
+    ylabel("n_H_S")
+    legend(legArr,'Location','southeast')
+    hold off
+    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_','nHSvsT','.png'))
+else
+    
+    %figure
+    %plot(T, E)
+    %title("E")
+    
+    figure
+    plot(T, n_HS)
+    hold on
+    title("n_H_S")
+    xlabel("Temperature T (K)")
+    ylabel("n_H_S")
+    legend(legArr,'Location','southeast')
+    hold off
+    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_','nHSvsT','.png'))
+end
+
+
+
+function legArr = makeLegend(L)
+%returns a legend given an array of lattice sizes
+
+for idx = 1:max(size(L))
+    legArr{idx} = strcat(num2str(L(idx)),'x',num2str(L(idx)),' spins');
+end
+end
