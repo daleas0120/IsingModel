@@ -28,7 +28,7 @@ function [spins, E, B, nHS] = equilibrateSpins_H(...
     E = zeros(time, 1);
     B = zeros(time, 1);
     nHS = zeros(time, 1);
-    [N, ~, D] = size(spins);
+    [N, M, D] = size(spins);
     
     for idx = 1:time% how many times to let the system evolve
         if N > 2
@@ -49,9 +49,12 @@ function [spins, E, B, nHS] = equilibrateSpins_H(...
                         
                         sum_nn = sumNN3D(spins, i, j, k);
                         
+                        %avg_spin = (sum(spins,'all'))/(N*M*D);
+                        
                         %then do change in energy with correct sign
                         %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-                        dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2));
+                        dE = delta_sig*(-1*J*sum_nn +...
+                            (big_delta/2 - T*ln_g/2));
                         
                         %E1 = spins(i,j)*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*spins(i,j);
                         %E2 = (-1*spins(i,j))*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*(-1*spins(i,j));

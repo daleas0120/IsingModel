@@ -10,10 +10,20 @@ clear;
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
+%{
+%%PRB 84 Constants
 J = 160;%K
 T = [1:20:301 301:-20:1];%K
 big_delta = 1300;%K
 ln_g = 6; %ratio of degeneracy HS to LS
+%}
+
+%%2013 Chiruta Constants
+J = 200;%K
+T = [200:2.5:360 360:-2.5:200];
+big_delta = 2247;%K
+ln_g = 7.216;
+G = 0;
 
 J_ev = J*k_b; %coupling constant/exchange energy in eV
 T_ev = T.*k_b;
@@ -28,6 +38,7 @@ H = 0; %external magnetic field
 big_delta = (k_b*big_delta)/J_ev;
 T = (k_b.*T)./J_ev;
 J = J_ev/J_ev;
+G = (k_b*G)/J_ev;
 
 T_inv = (J_ev.*T)./k_b;
 
@@ -56,8 +67,8 @@ B = zeros(1, length(k));
 n_HS = zeros(1, length(k));
 
 %L = [4, 7, 10, 40];
-L = [4, 7, 10, 40];
-D = 4;
+L = [7];
+D = 7;
 
 for p = 1:numTrials
     
