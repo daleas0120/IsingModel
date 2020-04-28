@@ -22,7 +22,7 @@ function [spins, E, B, nHS] = equilibrateSpins_H(...
 
 %}
     
-set(0,'DefaultTextInterpreter','none')
+set(0,'DefaultTextInterpreter','tex')
 k_b = 8.617333262*10^-5;%eV/K
 
 E = zeros(time, 1);

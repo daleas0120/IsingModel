@@ -10,10 +10,13 @@ clear;
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-J = 160;%K
-T = [50:2:300 300:-2:50];%K
-big_delta = 1300;%K
+J = 60;%K
+T = [100:2:400 400:-2:100];%K
+big_delta = 1515;%K
 ln_g = 6; %ratio of degeneracy HS to LS
+
+J_name = num2str(J);
+delt_name = num2str(big_delta);
 
 J_ev = J*k_b; %coupling constant/exchange energy in eV
 T_ev = T.*k_b;
@@ -34,9 +37,9 @@ T_inv = (J_ev.*T)./k_b;
 %%
 evo = 1e3; %number of MC steps to let the system burn in; this is discarded
 dataPts = 1e3; %number of MC steps to evaluate the system
-frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
-numTrials = 2; %number of times to repeat the experiment
+numTrials = 3; %number of times to repeat the experiment
 
+frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
 % naming system for the files and folders holding data from repeated trials
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_', 'w_', ...
@@ -55,8 +58,8 @@ B = zeros(1, length(k));
 %Spin fraction output variables
 n_HS = zeros(1, length(k));
 
-L = [4, 7, 10, 40, 200];
-%L = [10];
+%L = [4, 7, 10, 40, 200];
+L = [40];
 
 for p = 1:numTrials
     
@@ -147,14 +150,14 @@ end
 %% PLOTTING
 
 legArr = makeLegend(L);
-set(0,'DefaultTextInterpreter','none')
+%set(0,'DefaultTextInterpreter','latex')
 
 if numTrials > 1
     
     meanE = squeeze(mean(E));
     mean_nHS = squeeze(mean(n_HS))';
     
-    
+    %set(0,'DefaultInterpreter','latex')
     %%
     close all
     %{
@@ -167,15 +170,18 @@ if numTrials > 1
     hold off
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
     %}
+    plt_title = strcat('\rm ','J=',J_name, 'K and ',' \Delta=',delt_name,'K');
     figure
+    
     plot(T_inv, mean_nHS,'*-')
     hold on
-    title("Calculated thermal dependence of the HS fraction")
+    title(plt_title, 'Interpreter', 'tex')
     xlabel("Temperature T (K)")
     ylabel("n_H_S")
     legend(legArr,'Location','southeast')
     hold off
-    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_','nHSvsT','.png'))
+    saveas(gcf, ...
+        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.png'))
 else
     
     %figure
