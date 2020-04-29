@@ -10,20 +10,26 @@ clear;
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-%{
+%%{
 %%PRB 84 Constants
-J = 160;%K
-T = [1:20:301 301:-20:1];%K
-big_delta = 1300;%K
+J = 80;%K
+T = [1:5:301 301:-5:1];%K
+big_delta = 970;%K
 ln_g = 6; %ratio of degeneracy HS to LS
+G=0;
 %}
 
 %%2013 Chiruta Constants
+%{
 J = 200;%K
-T = [200:2.5:360 360:-2.5:200];
+T = [50:5:360 360:-5:50];
 big_delta = 2247;%K
 ln_g = 7.216;
 G = 0;
+%}
+
+bD_nom = num2str(big_delta);
+J_nom = num2str(J);
 
 J_ev = J*k_b; %coupling constant/exchange energy in eV
 T_ev = T.*k_b;
@@ -54,7 +60,7 @@ p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'x_', 'y_', 'z_', 'A_', 'B_', 'C_', 'D_'};
 
 % save intermediate results:
-saveIntResults = true;
+saveIntResults = false;
 
 %Energy output variables
 E = zeros(1, length(k));
@@ -67,7 +73,7 @@ B = zeros(1, length(k));
 n_HS = zeros(1, length(k));
 
 %L = [4, 7, 10, 40];
-L = [7];
+L = [40];
 D = 7;
 
 for p = 1:numTrials
@@ -75,7 +81,7 @@ for p = 1:numTrials
     if numTrials>1 || ~saveIntResults
         % save all trials in a single directory at highest level
         t = datetime('now');
-        t.Format = "yyMMddHHss";
+        t.Format = "yyMMdd";
         tryName = num2str(numTrials);
         dat_str0 = string(t);
         trial_dir = strcat('..\..\',dat_str0,'_',tryName,'_3DtrialRuns');
@@ -188,7 +194,8 @@ if numTrials > 1
     ylabel("n_H_S")
     legend(legArr,'Location','southeast')
     hold off
-    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_','nHSvsT','.png'))
+    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
 else
     
     %figure
@@ -203,7 +210,8 @@ else
     ylabel("n_H_S")
     legend(legArr,'Location','southeast')
     hold off
-    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_','nHSvsT','.png'))
+    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
 end
 
 function legArr = makeLegend(L,D)
