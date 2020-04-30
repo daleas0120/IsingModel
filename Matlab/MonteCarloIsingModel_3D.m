@@ -12,9 +12,9 @@ mu = 1; %atomic magnetic moment
 
 %%{
 %%PRB 84 Constants
-J = 80;%K
-T = [1:5:301 301:-5:1];%K
-big_delta = 970;%K
+J =70;%K
+T = [200:10:600 400:-10:600];%K
+big_delta = 2300;%K
 ln_g = 6; %ratio of degeneracy HS to LS
 G=0;
 %}
@@ -111,7 +111,7 @@ for p = 1:numTrials
         spins = initializeLattice3D(N,D); %randomly initializes 3D lattice
         
         % View initial lattice
-        %%{
+        %{
         figure
         spinVis(spins)
         axis equal
@@ -187,11 +187,13 @@ if numTrials > 1
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
     %}
     figure
-    plot(T_inv, mean_nHS,'*-')
+        plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
+    
+    plot(T_inv, mean_nHS,'*-r')
     hold on
-    title("Calculated thermal dependence of the HS fraction")
+    title(plt_title, 'Interpreter', 'tex')
     xlabel("Temperature T (K)")
-    ylabel("n_H_S")
+    ylabel("n_H_S", 'Interpreter','tex')
     legend(legArr,'Location','southeast')
     hold off
     saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
