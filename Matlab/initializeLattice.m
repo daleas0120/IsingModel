@@ -14,5 +14,5 @@ for idx = 1:N-2
     end
 end
 %spins = padarray(spins,[2 2],0,'both');
-spins = padarray(spins,[1 1], 1, 'both');
+spins = padarray(spins,[1 1], 0, 'both');
 end

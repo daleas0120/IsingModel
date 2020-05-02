@@ -10,9 +10,9 @@ clear;
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-J = 60;%K
-T = [100:2:400 400:-2:100];%K
-big_delta = 1515;%K
+J = 10;%K
+T = [100:10:400];%K
+big_delta = 1510;%K
 ln_g = 6; %ratio of degeneracy HS to LS
 
 J_name = num2str(J);
@@ -35,9 +35,9 @@ J = J_ev/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
 %%
-evo = 1e3; %number of MC steps to let the system burn in; this is discarded
+evo = 5e4; %number of MC steps to let the system burn in; this is discarded
 dataPts = 1e3; %number of MC steps to evaluate the system
-numTrials = 3; %number of times to repeat the experiment
+numTrials = 1; %number of times to repeat the experiment
 
 frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
 % naming system for the files and folders holding data from repeated trials
@@ -173,30 +173,35 @@ if numTrials > 1
     plt_title = strcat('\rm ','J=',J_name, 'K and ',' \Delta=',delt_name,'K');
     figure
     
-    plot(T_inv, mean_nHS,'*-')
+    plot(T_inv, mean_nHS,'b*-')
     hold on
     title(plt_title, 'Interpreter', 'tex')
     xlabel("Temperature T (K)")
     ylabel("n_H_S")
+    axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
     hold off
     saveas(gcf, ...
         strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.png'))
+    writematrix([T_inv mean_nHS],strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.txt') )
 else
     
     %figure
     %plot(T, E)
     %title("E")
-    
+    plt_title = strcat('\rm ','J=',J_name, 'K and ',' \Delta=',delt_name,'K');
     figure
-    plot(T, n_HS)
+    plot(T_inv, n_HS,'k.-')
     hold on
-    title("n_H_S")
+    title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
     ylabel("n_H_S")
+    axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
     hold off
-    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_','nHSvsT','.png'))
+    saveas(gcf,strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.png'))
+        writematrix([T_inv' n_HS'],strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.txt') )
+
 end
 
 
