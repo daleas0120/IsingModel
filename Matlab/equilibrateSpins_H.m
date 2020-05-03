@@ -1,5 +1,5 @@
 function [spins, E, B, nHS] = equilibrateSpins_H(...
-    time, spins, k, T, mu, H, J, big_delta, ln_g, ...
+    time, spins, k, T, mu, H, J, big_delta, ln_g,G, ...
     frameRate, dir_name, saveIntResults)
 %{
 %equilabrateSpins_H.m
@@ -14,6 +14,7 @@ function [spins, E, B, nHS] = equilibrateSpins_H(...
 %mu: atomic magnetic moment
 %H: external magnetic field
 %J: spin exchange coupling constant
+%ln_g: log of ratio of degeneracy HS to degeneracy LS
 %frameRate: determines how frequently intermediate spin matrices are saved
 %to an image
 %spins_last: previous spin value
@@ -48,9 +49,12 @@ for idx = 1:time% how many times to let the system evolve
                 sum_nn = (spins((i-1),j) + spins((i+1),j) +...
                     spins(i,(j-1)) + spins(i,(j+1)));
                 
+                spin_avg = mean(mean(spins));
+                
+                
                 %then do change in energy with correct sign
                 %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-                dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2));
+                dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2 - G*spin_avg));
                 
                 %E1 = spins(i,j)*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*spins(i,j);
                 %E2 = (-1*spins(i,j))*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*(-1*spins(i,j));

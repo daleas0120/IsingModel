@@ -10,10 +10,11 @@ clear;
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-J = 10;%K
-T = [100:10:400];%K
-big_delta = 1510;%K
-ln_g = 6; %ratio of degeneracy HS to LS
+J = 87;%K
+T = [100:10:400 400:-10:100];%K
+big_delta = 2247;%K
+ln_g = 7.216; %ratio of degeneracy HS to LS
+G = 500;%K
 
 J_name = num2str(J);
 delt_name = num2str(big_delta);
@@ -21,6 +22,7 @@ delt_name = num2str(big_delta);
 J_ev = J*k_b; %coupling constant/exchange energy in eV
 T_ev = T.*k_b;
 bD_ev = big_delta*k_b;
+G_ev = G*k_b;
 
 k = J_ev./(k_b.*T); % dimensionless inverse temperature
 
@@ -31,12 +33,12 @@ H = 0; %external magnetic field
 big_delta = (k_b*big_delta)/J_ev;
 T = (k_b.*T)./J_ev;
 J = J_ev/J_ev;
-
+G = G_ev/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
 %%
-evo = 5e4; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1e3; %number of MC steps to evaluate the system
+evo = 5e1; %number of MC steps to let the system burn in; this is discarded
+dataPts = 1e1; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 
 frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
@@ -112,7 +114,7 @@ for p = 1:numTrials
             X = sprintf('Cooling %d spins to temp %f ....',N, T_inv(temp));
             disp(X)
             [spins, ~, ~, ~] = equilibrateSpins_H(...
-                evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
+                evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g,G, ...
                 frameRate, dir_name, saveIntResults);
             
             %take data
@@ -120,7 +122,7 @@ for p = 1:numTrials
             [spins, E(p, temp, numSpins), ~, n_HS(p, temp, numSpins)] = ...
                 equilibrateSpins_H(...
                 dataPts, spins, k(temp), T(temp), mu, H, J, ...
-                big_delta, ln_g, ...
+                big_delta, ln_g, G,...
                 frameRate, dir_name, saveIntResults);
             
             close;
