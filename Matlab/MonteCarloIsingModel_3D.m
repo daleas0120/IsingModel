@@ -49,7 +49,7 @@ G = (k_b*G)/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
 %%
-evo = 1e3; %number of MC steps to let the system burn in; this is discarded
+evo = 5e2; %number of MC steps to let the system burn in; this is discarded
 dataPts = 1e2; %number of MC steps to evaluate the system
 frameRate = 250e7+1; % provides a modulus to save snapshot of system
 numTrials = 2; %number of times to repeat the experiment
@@ -73,8 +73,11 @@ B = zeros(1, length(k));
 n_HS = zeros(1, length(k));
 
 %L = [4, 7, 10, 40];
-L = [200];
-D = 20;
+L = [20];
+D = 10;
+
+%L = [5];
+%D = 5;
 
 for p = 1:numTrials
     
@@ -108,7 +111,7 @@ for p = 1:numTrials
         end
         
         %initialize 2D lattice
-        spins = initializeLattice3D(N,D,0); %randomly initializes 3D lattice
+        [spins, listLS] = initializeLattice3D(N,D,(-1),(-1), 0.3); %randomly initializes 3D lattice
         
         % View initial lattice
         %{
@@ -128,7 +131,7 @@ for p = 1:numTrials
             X = sprintf('Cooling %d spins to temp %f ....',N, T_inv(temp));
             disp(X)
             [spins, ~, ~, ~] = equilibrateSpins_3D(...
-                evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, ...
+                evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             %take data
@@ -136,7 +139,7 @@ for p = 1:numTrials
             [spins, E(p, temp, numSpins), ~, n_HS(p, temp, numSpins)] = ...
                 equilibrateSpins_3D(...
                 dataPts, spins, k(temp), T(temp), mu, H, J, ...
-                big_delta, ln_g, ...
+                big_delta, ln_g, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             close;
