@@ -11,9 +11,12 @@ for i = 1:m
             if spinD(i,j,k) == 1
                 argC = 'r';
                 argS = '^';
-            else
+            elseif spinD(i,j,k) == (-1)
                 argC = 'k';
                 argS = 'v';
+            else
+                argC = 'b';
+                argS = '*';
             end
             plot3(i,j,k,argS,'Color', argC, 'MarkerFaceColor',argC)
             hold on
