@@ -12,9 +12,9 @@ mu = 1; %atomic magnetic moment
 
 %%{
 %%PRB 84 Constants
-J =70;%K
-T = [200:10:600 400:-10:600];%K
-big_delta = 2300;%K
+J = 10;%K
+T = [100:10:400];%K
+big_delta = 1125;%K
 ln_g = 6; %ratio of degeneracy HS to LS
 G=0;
 %}
@@ -49,9 +49,9 @@ G = (k_b*G)/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
 %%
-evo = 2e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = 2e2; %number of MC steps to evaluate the system
-frameRate = 250; % provides a modulus to save snapshot of system
+evo = 1e3; %number of MC steps to let the system burn in; this is discarded
+dataPts = 1e2; %number of MC steps to evaluate the system
+frameRate = 250e7+1; % provides a modulus to save snapshot of system
 numTrials = 2; %number of times to repeat the experiment
 
 % naming system for the files and folders holding data from repeated trials
@@ -73,8 +73,8 @@ B = zeros(1, length(k));
 n_HS = zeros(1, length(k));
 
 %L = [4, 7, 10, 40];
-L = [40];
-D = 7;
+L = [200];
+D = 20;
 
 for p = 1:numTrials
     
@@ -108,7 +108,7 @@ for p = 1:numTrials
         end
         
         %initialize 2D lattice
-        spins = initializeLattice3D(N,D); %randomly initializes 3D lattice
+        spins = initializeLattice3D(N,D,0); %randomly initializes 3D lattice
         
         % View initial lattice
         %{
@@ -189,12 +189,13 @@ if numTrials > 1
     figure
         plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
     
-    plot(T_inv, mean_nHS,'*-r')
+    plot(T_inv, mean_nHS,'*-k')
     hold on
     title(plt_title, 'Interpreter', 'tex')
     xlabel("Temperature T (K)")
     ylabel("n_H_S", 'Interpreter','tex')
     legend(legArr,'Location','southeast')
+    axis([-inf inf 0 1.0])
     hold off
     saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
         'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
