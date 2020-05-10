@@ -21,6 +21,6 @@ for i = 2:N - 1
         end
     end
 end
-%because we visit each spin 4 times, need to divide total interaction by 4
+%because we visit each spin 6 times, need to divide total interaction by 6
 Snn = Snn/6;
 end

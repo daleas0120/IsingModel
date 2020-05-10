@@ -1,5 +1,6 @@
 function S = sumNN3D(spins, i, j, k)
 %{
+sums the six nearest neighbors in 3D
 
 %}
 S = spins((i-1), j, k) +...

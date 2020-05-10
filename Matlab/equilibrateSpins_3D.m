@@ -1,5 +1,5 @@
-function [spins, E, B, nHS] = equilibrateSpins_H(...
-    time, spins, k, T, mu, H, J, big_delta, ln_g, listLS, ...
+function [spins, E, nHS] = equilibrateSpins_3D(...
+    time, spins, ~, T, ~, ~, J, big_delta, ln_g, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
 equilabrateSpins_H.m
@@ -26,12 +26,19 @@ saveIntResults: boolean to control writing of frame samples
     %}
     
     set(0,'DefaultTextInterpreter','none')
-    k_b = 8.617333262*10^-5;%eV/K
     
     E = zeros(time, 1);
-    B = zeros(time, 1);
     nHS = zeros(time, 1);
-    [N, M, D] = size(spins);
+    [N, ~, D] = size(spins);
+    
+    %% some optimization
+    
+    longRange = (big_delta/2 - T*ln_g/2);
+    
+    
+    
+    %%
+    
     
     for idx = 1:time% how many times to let the system evolve
         if N > 2
@@ -44,14 +51,10 @@ saveIntResults: boolean to control writing of frame samples
                         
                         if ismember([i j k], listLS, 'rows')
                             continue
-                        else
+                        else                            
+                            delta_sig = -1*spins(i, j, k) - spins(i, j, k);
                             
                             %pick spin and flip right away
-                            %spins(i,j) = -1*spins(i,j);
-                            
-                            S = -1*spins(i, j, k);
-                            delta_sig = S - spins(i, j, k);
-                            
                             spins(i, j, k) = -1*spins(i, j, k);
                             
                             sum_nn = sumNN3D(spins, i, j, k);
@@ -60,12 +63,10 @@ saveIntResults: boolean to control writing of frame samples
                             
                             %then do change in energy with correct sign
                             %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-                            dE = delta_sig*(-1*J*sum_nn +...
-                                (big_delta/2 - T*ln_g/2));
+                            %dE = delta_sig*(-1*J*sum_nn +...
+                            %    (big_delta/2 - T*ln_g/2));
                             
-                            %E1 = spins(i,j)*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*spins(i,j);
-                            %E2 = (-1*spins(i,j))*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*(-1*spins(i,j));
-                            %dE = E2 - E1;
+                            dE = delta_sig*(-1*J*sum_nn + longRange);
                             
                             p = exp(-1*dE/T);
                             
@@ -84,11 +85,9 @@ saveIntResults: boolean to control writing of frame samples
             end
         end
         
-        Snn = nearestN3D(spins);
-        sum_Si = sum(spins(2:N-1, 2:N-1, 2:D-1), 'all');
+        %Snn = nearestN3D(spins);
         
-        E(idx, 1) = -J*Snn;
-        B(idx, 1) = mu*sum_Si;
+        %E(idx, 1) = -J*Snn;
         nHS(idx, 1) = n_HSfrac3D(spins);
         
         if mod(idx, frameRate) == 0
@@ -104,8 +103,8 @@ saveIntResults: boolean to control writing of frame samples
         end
     end
     
-    E = mean(E);
-    B = (mean(B)./(N*N));
+    %E = mean(E);
+    E=0;
     nHS = mean(nHS);
     
 end

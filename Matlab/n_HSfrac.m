@@ -1,4 +1,4 @@
-function nHS = n_HSfrac3D(N, spins)
+function nHS = n_HSfrac(N, spins)
 %{
 nHS.m
 Ashley Dale

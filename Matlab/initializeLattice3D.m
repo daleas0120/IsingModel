@@ -25,7 +25,7 @@ for kdx = 1:(D-2)
             else
                 spins(idx, jdx) = (-1);
             end
-            if rand <= (1 - p) && lock == spins(idx, jdx)
+            if rand <= p && lock == spins(idx, jdx)
                 listLS(pt, :) = [idx jdx kdx + 1];
                 pt = pt + 1;
             end
