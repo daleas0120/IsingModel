@@ -224,15 +224,21 @@ else
     %title("E")
     
     figure
-    plot(T, n_HS)
+            plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
+
+    plot(T_inv', n_HS(1,:), '*-k')
     hold on
-    title("n_H_S")
+    title(plt_title,'Interpreter', 'tex')
     xlabel("Temperature T (K)")
-    ylabel("n_H_S")
+    ylabel("n_H_S"','Interpreter','tex')
     legend(legArr,'Location','southeast')
+    axis([-inf inf 0 1.0])
     hold off
     saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
         'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
+    
+    writematrix([T_inv' n_HS(1,:)'], strcat(trial_dir,'\',dat_str0,'_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.txt'));
 end
 
 function legArr = makeLegend(L,D)
