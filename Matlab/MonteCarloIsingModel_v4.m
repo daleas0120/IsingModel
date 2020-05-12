@@ -5,19 +5,22 @@
 
 %%
 tic
-clear;
+%clear;
 
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-J = 87;%K
-T = [100:10:400 400:-10:100];%K
-big_delta = 2247;%K
-ln_g = 7.216; %ratio of degeneracy HS to LS
-G = 500;%K
+J = 87;%
+T = [100:10:400];%K
+%T = 1000;
 
-J_name = num2str(J);
-delt_name = num2str(big_delta);
+big_delta = 1125;%K
+ln_g = 7.216; %ratio of degeneracy HS to LS
+G = 0;%K
+
+bD_nom = num2str(big_delta);
+J_nom = num2str(J);
+
 
 J_ev = J*k_b; %coupling constant/exchange energy in eV
 T_ev = T.*k_b;
@@ -37,11 +40,16 @@ G = G_ev/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
 %%
-evo = 5e1; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1e1; %number of MC steps to evaluate the system
-numTrials = 1; %number of times to repeat the experiment
+probLock = 0.35; %percentage of spins locked
+lock = (-1); %Locked in LS or HS
+boundCond = (-1); %boundary condition
 
-frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
+%%
+evo = 1e2; %number of MC steps to let the system burn in; this is discarded
+dataPts = 0.5e2; %number of MC steps to evaluate the system
+numTrials = 1; %number of times to repeat the experiment
+frameRate = 10; % provides a modulus to save snapshot of system
+
 % naming system for the files and folders holding data from repeated trials
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_', 'w_', ...
@@ -61,8 +69,8 @@ B = zeros(1, length(k));
 n_HS = zeros(1, length(k));
 
 %L = [4, 7, 10, 40, 200];
-L = [40];
-
+L = [100];
+%%
 for p = 1:numTrials
     
     if numTrials>1 || ~saveIntResults
@@ -77,6 +85,8 @@ for p = 1:numTrials
         % no group directory required
         trial_dir = '..\..';
     end
+    
+    %%
     
     for numSpins = 1:length(L)% square root of number of spins
         
@@ -93,9 +103,10 @@ for p = 1:numTrials
         else
             dir_name = "";
         end
-        
         %initialize 2D lattice
-        spins = initializeLattice(N); %randomly initializes 2D lattice
+        [spins, listLS] = initializeLattice(N, boundCond, lock, probLock ); %randomly initializes 2D lattice
+        
+        origSpins = spins;
         
         % View initial lattice
         %{
@@ -105,7 +116,7 @@ for p = 1:numTrials
         title("Initial Lattice")
         %}
         figure;
-        
+        %%
         for temp = 1:length(k)
             %copy spins for later comparison
             spins_last = spins;
@@ -113,20 +124,21 @@ for p = 1:numTrials
             %let state reach equilibrium
             X = sprintf('Cooling %d spins to temp %f ....',N, T_inv(temp));
             disp(X)
-            [spins, ~, ~, ~] = equilibrateSpins_H(...
-                evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g,G, ...
+            [spins, ~, ~] = equilibrateSpins_H(...
+                evo, spins, k(temp), T(temp), mu, H, J,...
+                big_delta, ln_g, G, listLS,...
                 frameRate, dir_name, saveIntResults);
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), ~, n_HS(p, temp, numSpins)] = ...
+            [spins, E(p, temp, numSpins), n_HS(p, temp, numSpins)] = ...
                 equilibrateSpins_H(...
                 dataPts, spins, k(temp), T(temp), mu, H, J, ...
-                big_delta, ln_g, G,...
+                big_delta, ln_g, G, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             close;
-            
+            %{
             if saveIntResults
                 
                 file_name = strcat(dir_name,'\',dat_str, p_name{p}, num2str(N),...
@@ -144,22 +156,22 @@ for p = 1:numTrials
                 saveas(gcf, image_name);
                 close
             end
+            %}
+            toc
         end
-        toc
     end
 end
 
 %% PLOTTING
 
 legArr = makeLegend(L);
-%set(0,'DefaultTextInterpreter','latex')
+set(0,'DefaultTextInterpreter','none')
 
 if numTrials > 1
     
     meanE = squeeze(mean(E));
     mean_nHS = squeeze(mean(n_HS))';
     
-    %set(0,'DefaultInterpreter','latex')
     %%
     close all
     %{
@@ -172,45 +184,52 @@ if numTrials > 1
     hold off
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
     %}
-    plt_title = strcat('\rm ','J=',J_name, 'K and ',' \Delta=',delt_name,'K');
-    figure
+    plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
     
+    figure
     plot(T_inv, mean_nHS,'b*-')
     hold on
     title(plt_title, 'Interpreter', 'tex')
     xlabel("Temperature T (K)")
-    ylabel("n_H_S")
+    ylabel("n_H_S", 'Interpreter','tex')
     axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
+    axis([-inf inf 0 1.0])
     hold off
+    
     saveas(gcf, ...
-        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.png'))
-    writematrix([T_inv mean_nHS],strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.txt') )
+        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_nom,'K_D',bD_nom,'K.png'))
+    
+    writematrix([T_inv mean_nHS],...
+        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_nom,'K_D',bD_nom,'K.txt') )
 else
+    n_HS = squeeze(n_HS);
     
     %figure
     %plot(T, E)
     %title("E")
-    plt_title = strcat('\rm ','J=',J_name, 'K and ',' \Delta=',delt_name,'K');
+    plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
     figure
     plot(T_inv, n_HS,'k.-')
     hold on
     title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
-    ylabel("n_H_S")
+    ylabel("n_H_S",'Interpreter','tex')
     axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
     hold off
-    saveas(gcf,strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.png'))
-        writematrix([T_inv' n_HS'],strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_name,'K_D',delt_name,'K.txt') )
-
+    saveas(gcf,...
+        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_nom,'K_D',bD_nom,'K_L',num2str(L),'.png'))
+    writematrix([T_inv' n_HS'],...
+        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_nom,'K_D',bD_nom,'K_L',num2str(L),'.txt') )
+    
 end
 
 
 
 function legArr = makeLegend(L)
 %returns a legend given an array of lattice sizes
-
+legArr = cell(max(size(L)),1);
 for idx = 1:max(size(L))
     legArr{idx} = strcat(num2str(L(idx)),'x',num2str(L(idx)),' spins');
 end

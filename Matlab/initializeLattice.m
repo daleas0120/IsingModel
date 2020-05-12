@@ -1,18 +1,41 @@
+
+function [spins, listLS] = initializeLattice(N, b, lock, p)
+%{
+
 %initializeLattice.m
 %Ashley Dale
 %creates a randomly initialized NxN lattice
+N: lattice dimension (NxN lattice)
+b: boundary condition 
+lock: [1, -1]
+p: probability with which spin is locked
 
-function spins = initializeLattice(N)
+%}
+
+
 spins = rand(N - 2); %decide how many ones there are
+pt = 1;
+listLS(pt, :) = [0 0];
+
 for idx = 1:N-2
     for jdx = 1:N-2
         if (spins(idx, jdx) > 0.5)
             spins(idx, jdx) = 1;
         else
             spins(idx, jdx) = (-1);
+            %add spin location to list of locked spins with probability p
+            if rand < 2*p
+                listLS(pt, :) = [(idx + 1)  (jdx + 1)];
+                pt = pt+1;
+            end
         end
+        
+        
+
     end
 end
 %spins = padarray(spins,[2 2],0,'both');
-spins = padarray(spins,[1 1], 0, 'both');
+
+spins = padarray(spins,[1 1], b, 'both');
+
 end
