@@ -14,7 +14,7 @@ mu = 1; %atomic magnetic moment
 %%PRB 84 Constants
 J = 10;%K
 T = 100:10:400;%K
-big_delta = 1125;%K
+big_delta = 1500;%K
 ln_g = 6; %ratio of degeneracy HS to LS
 G=0;
 %}
@@ -78,8 +78,8 @@ B = zeros(1, length(k));
 n_HS = zeros(1, length(k));
 
 %L = [4, 7, 10, 40];
-L = [80];
-D = 10;
+L = [20];
+D = 20;
 
 %L = [5];
 %D = 5;

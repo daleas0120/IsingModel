@@ -24,13 +24,14 @@ for kdx = 1:(D-2)
                 spins(idx, jdx) = 1;
             else
                 spins(idx, jdx) = (-1);
-            end
-            if rand <= p && lock == spins(idx, jdx)
-                listLS(pt, :) = [idx jdx kdx + 1];
-                pt = pt + 1;
+                if rand < 2*p
+                    listLS(pt, :) = [(idx+1) (jdx+1) (kdx+1)];
+                    pt = pt + 1;
+                end
             end
         end
     end
+    
     spins = padarray(spins,[1 1],b,'both');
     spinD = cat(3,spinD, spins);
 end

@@ -51,7 +51,7 @@ saveIntResults: boolean to control writing of frame samples
                         
                         if ismember([i j k], listLS, 'rows')
                             continue
-                        else                            
+                        else
                             delta_sig = -1*spins(i, j, k) - spins(i, j, k);
                             
                             %pick spin and flip right away
@@ -90,6 +90,10 @@ saveIntResults: boolean to control writing of frame samples
         %E(idx, 1) = -J*Snn;
         nHS(idx, 1) = n_HSfrac3D(spins);
         
+        plot(nHS)
+        pause(0.05)
+        
+        %{
         if mod(idx, frameRate) == 0
             pltTitle = strcat(num2str(N),'spins','_T=',num2str(T),'_', num2str(idx));
             spinVis(spins)
@@ -100,11 +104,14 @@ saveIntResults: boolean to control writing of frame samples
                 frame_name = strcat(dir_name,'\frames\',pltTitle,".png");
                 saveas(gcf, frame_name)
             end
-        end
+        %}
     end
+    
     
     %E = mean(E);
     E=0;
     nHS = mean(nHS);
     
 end
+
+
