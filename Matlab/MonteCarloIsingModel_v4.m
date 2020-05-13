@@ -7,20 +7,33 @@
 tic
 %clear;
 
+L = [200];
+
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-J = 87;%
+J = 10;%
 T = [100:10:400];%K
-%T = 1000;
-
-big_delta = 1125;%K
+big_delta = 1500;%K
 ln_g = 7.216; %ratio of degeneracy HS to LS
 G = 0;%K
+H = 0; %external magnetic field
 
+%%
+probLock = 0; %percentage of interior spins locked
+lock = (-1); %Locked in LS or HS
+boundCond = (1); %boundary condition
+
+%%
+evo = 1e2; %number of MC steps to let the system burn in; this is discarded
+dataPts = 1e2; %number of MC steps to evaluate the system
+numTrials = 1; %number of times to repeat the experiment
+frameRate = 10; % provides a modulus to save snapshot of system
+
+
+%%
 bD_nom = num2str(big_delta);
 J_nom = num2str(J);
-
 
 J_ev = J*k_b; %coupling constant/exchange energy in eV
 T_ev = T.*k_b;
@@ -29,7 +42,7 @@ G_ev = G*k_b;
 
 k = J_ev./(k_b.*T); % dimensionless inverse temperature
 
-H = 0; %external magnetic field
+
 
 %% DIMENSIONLESS UNITS
 
@@ -39,16 +52,6 @@ J = J_ev/J_ev;
 G = G_ev/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
-%%
-probLock = 0.35; %percentage of spins locked
-lock = (-1); %Locked in LS or HS
-boundCond = (-1); %boundary condition
-
-%%
-evo = 1e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = 0.5e2; %number of MC steps to evaluate the system
-numTrials = 1; %number of times to repeat the experiment
-frameRate = 10; % provides a modulus to save snapshot of system
 
 % naming system for the files and folders holding data from repeated trials
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
@@ -68,8 +71,7 @@ B = zeros(1, length(k));
 %Spin fraction output variables
 n_HS = zeros(1, length(k));
 
-%L = [4, 7, 10, 40, 200];
-L = [100];
+
 %%
 for p = 1:numTrials
     
@@ -210,8 +212,9 @@ else
     %title("E")
     plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
     figure
-    plot(T_inv, n_HS,'k.-')
+    plot(T_inv, n_HS,'.-')
     hold on
+    grid on
     title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
     ylabel("n_H_S",'Interpreter','tex')
