@@ -10,15 +10,6 @@ clear;
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-%%{
-%%PRB 84 Constants
-J = 10;%K
-T = 100:10:400;%K
-big_delta = 1500;%K
-ln_g = 6; %ratio of degeneracy HS to LS
-G=0;
-%}
-
 %%2013 Chiruta Constants
 %{
 J = 200;%K
@@ -28,18 +19,36 @@ ln_g = 7.216;
 G = 0;
 %}
 
-bD_nom = num2str(big_delta);
-J_nom = num2str(J);
+%L = [4, 7, 10, 40];
+L = [82];
+D = 22;
 
+J = 10;%K
+T = 100:10:400;%K
+big_delta = 1500;%K
+ln_g = 7.216; %ratio of degeneracy HS to LS
+G=0;
+H = 0; %external magnetic field
+
+%%
+probLock = 0.44; %percentage of spins locked
+lock = (-1); %Locked in LS or HS
+boundCond = (0); %boundary condition
+
+%%
+evo = 5;%1e2; %number of MC steps to let the system burn in; this is discarded
+dataPts = 5;%1e2; %number of MC steps to evaluate the system
+frameRate = 250e7+1; % provides a modulus to save snapshot of system
+
+numTrials = 1; %number of times to repeat the experiment
+
+%% DIMENSIONLESS UNITS
 J_ev = J*k_b; %coupling constant/exchange energy in eV
-T_ev = T.*k_b;
-bD_ev = big_delta*k_b;
 
 k = J_ev./(k_b.*T); % dimensionless inverse temperature
 
-H = 0; %external magnetic field
-
-%% DIMENSIONLESS UNITS
+T_ev = T.*k_b;
+bD_ev = big_delta*k_b;
 
 big_delta = (k_b*big_delta)/J_ev;
 T = (k_b.*T)./J_ev;
@@ -49,15 +58,8 @@ G = (k_b*G)/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
 %%
-probLock = 0.575; %percentage of spins locked
-lock = (-1); %Locked in LS or HS
-boundCond = (-1); %boundary condition
-
-%%
-evo = 1e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1e2; %number of MC steps to evaluate the system
-frameRate = 250e7+1; % provides a modulus to save snapshot of system
-numTrials = 2; %number of times to repeat the experiment
+bD_nom = num2str(big_delta);
+J_nom = num2str(J);
 
 % naming system for the files and folders holding data from repeated trials
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
@@ -77,12 +79,6 @@ B = zeros(1, length(k));
 %Spin fraction output variables
 n_HS = zeros(1, length(k));
 
-%L = [4, 7, 10, 40];
-L = [20];
-D = 20;
-
-%L = [5];
-%D = 5;
 
 %%
 for p = 1:numTrials

@@ -88,10 +88,10 @@ saveIntResults: boolean to control writing of frame samples
         %Snn = nearestN3D(spins);
         
         %E(idx, 1) = -J*Snn;
-        nHS(idx, 1) = n_HSfrac3D(spins);
+        %nHS(idx, 1) = n_HSfrac3D(spins);
         
-        plot(nHS)
-        pause(0.05)
+        %plot(nHS)
+        %pause(0.05)
         
         %{
         if mod(idx, frameRate) == 0
