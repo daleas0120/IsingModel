@@ -20,9 +20,9 @@ G = 0;%K
 H = 0; %external magnetic field
 
 %%
-probLock = 0; %percentage of interior spins locked
+probLock = 0.44; %percentage of interior spins locked
 lock = (-1); %Locked in LS or HS
-boundCond = (1); %boundary condition
+boundCond = (0); %boundary condition
 
 %%
 evo = 1e2; %number of MC steps to let the system burn in; this is discarded
