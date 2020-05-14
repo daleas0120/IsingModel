@@ -7,26 +7,26 @@
 tic
 %clear;
 
-L = [200];
+L = [42];
 
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
 J = 10;%
 T = [100:10:400];%K
-big_delta = 1500;%K
-ln_g = 7.216; %ratio of degeneracy HS to LS
+big_delta = 1450;%K
+ln_g = 6; %ratio of degeneracy HS to LS
 G = 0;%K
 H = 0; %external magnetic field
 
 %%
-probLock = 0.44; %percentage of interior spins locked
-lock = (-1); %Locked in LS or HS
+pLS = 0.3; %percentage of interior spins locked in LS
+pHS = 0.12; %percentage of interior spins locked in HS
 boundCond = (0); %boundary condition
 
 %%
-evo = 1e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1e2; %number of MC steps to evaluate the system
+evo = .5e2; %number of MC steps to let the system burn in; this is discarded
+dataPts = .5e2; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 10; % provides a modulus to save snapshot of system
 
@@ -106,7 +106,7 @@ for p = 1:numTrials
             dir_name = "";
         end
         %initialize 2D lattice
-        [spins, listLS] = initializeLattice(N, boundCond, lock, probLock ); %randomly initializes 2D lattice
+        [spins, listLS] = initializeLattice(N, boundCond, pLS, pHS); %randomly initializes 2D lattice
         
         origSpins = spins;
         
@@ -124,7 +124,7 @@ for p = 1:numTrials
             spins_last = spins;
             
             %let state reach equilibrium
-            X = sprintf('Cooling %d spins to temp %f ....',N, T_inv(temp));
+            X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv(temp));
             disp(X)
             [spins, ~, ~] = equilibrateSpins_H(...
                 evo, spins, k(temp), T(temp), mu, H, J,...
