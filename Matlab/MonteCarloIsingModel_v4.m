@@ -7,15 +7,15 @@
 tic
 %clear;
 
-L = [42];
+L = [202];
 
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
-J = 10;%
-T = [100:10:400];%K
-big_delta = 1450;%K
-ln_g = 6; %ratio of degeneracy HS to LS
+J = -75;%
+T = [100:10:400 400:-10:100];%K
+big_delta = 2300;%K
+ln_g = 81.9/8.31; %ratio of degeneracy HS to LS
 G = 0;%K
 H = 0; %external magnetic field
 
@@ -25,8 +25,8 @@ pHS = 0.12; %percentage of interior spins locked in HS
 boundCond = (0); %boundary condition
 
 %%
-evo = .5e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = .5e2; %number of MC steps to evaluate the system
+evo = 50e1; %number of MC steps to let the system burn in; this is discarded
+dataPts = 50e1; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 10; % provides a modulus to save snapshot of system
 
@@ -46,11 +46,11 @@ k = J_ev./(k_b.*T); % dimensionless inverse temperature
 
 %% DIMENSIONLESS UNITS
 
-big_delta = (k_b*big_delta)/J_ev;
-T = (k_b.*T)./J_ev;
-J = J_ev/J_ev;
-G = G_ev/J_ev;
-T_inv = (J_ev.*T)./k_b;
+big_delta = (k_b*big_delta)/abs(J_ev);
+T = (k_b.*T)./abs(J_ev);
+J = J_ev/abs(J_ev);
+G = G_ev/abs(J_ev);
+T_inv = (abs(J_ev).*T)./k_b;
 
 
 % naming system for the files and folders holding data from repeated trials
@@ -187,7 +187,8 @@ if numTrials > 1
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
     %}
     plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
-    
+    img_nom = strcat(trial_dir,'\',dat_str0,'_',...
+        'nHSvsT','_J',J_nom,'K_D',bD_nom,'K_pLS',num2str(pLS),'_pHS',num2str(pHS),'.txt');
     figure
     plot(T_inv, mean_nHS,'b*-')
     hold on
@@ -202,11 +203,12 @@ if numTrials > 1
     saveas(gcf, ...
         strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_nom,'K_D',bD_nom,'K.png'))
     
-    writematrix([T_inv mean_nHS],...
-        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_nom,'K_D',bD_nom,'K.txt') )
+    writematrix([T_inv mean_nHS],img_nom)
 else
     n_HS = squeeze(n_HS);
-    
+    nom = strcat(trial_dir,'\',dat_str0,'_',...
+        'nHSvsT','_J',J_nom,'K_D',bD_nom,'K_pLS',num2str(pLS),...
+        '_pHS',num2str(pHS),'_L',num2str(L));
     %figure
     %plot(T, E)
     %title("E")
@@ -222,9 +224,9 @@ else
     legend(legArr,'Location','southeast')
     hold off
     saveas(gcf,...
-        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_nom,'K_D',bD_nom,'K_L',num2str(L),'.png'))
+        strcat(nom,'.png'))
     writematrix([T_inv' n_HS'],...
-        strcat(trial_dir,'\',dat_str0,'_','nHSvsT','_J',J_nom,'K_D',bD_nom,'K_L',num2str(L),'.txt') )
+        strcat(nom,'.txt') )
     
 end
 
