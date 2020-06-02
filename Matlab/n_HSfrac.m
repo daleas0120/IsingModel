@@ -14,7 +14,7 @@ sum_Si = sum(spins, 'all');
 
 %mean = ((4*(N - 1)) + sum_Si)/(N*N);
 
-mean = sum_Si/(N*N);
+mean = sum_Si/((N-2)^2);
 
 nHS = (1+mean)/2;
 
