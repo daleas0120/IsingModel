@@ -13,11 +13,11 @@ k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
 %% Way UP (LS to HS)
-J1 = 200;%
+J1 = 170;%
 T1 = [300:5:400];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
-ln_g1 = 43/8.31;
+ln_g1 = 42.75/8.31;
 G1 = 0;%K
 H1 = 0; %external magnetic field
 
@@ -44,11 +44,11 @@ G1 = G_ev1/abs(J_ev1);
 T_inv1 = (abs(J_ev1).*T1)./k_b;
 
 %% WAY DOWN (HS to LS)
-J2 = 130;%
+J2 = 125;%
 T2 = [400:-5:300];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
-ln_g2 = 49.5/8.31; %ratio of degeneracy HS to LS
+ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
 G2 = 0;%K
 H2 = 0; %external magnetic field
 
