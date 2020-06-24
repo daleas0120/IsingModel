@@ -5,9 +5,18 @@
 
 %%
 tic
-%clear;
-bd = 1940;
-L = [82];
+clear;
+
+%% LATTICE PARAMETERS
+probLock = 0.575; %percentage of spins locked
+lock = (-1); %Locked in LS or HS
+boundCond = (-1); %boundary condition
+
+%L = [4, 7, 10, 40];
+L = [10];
+D = 3;
+
+%% MOLECULE PARAMETERS
 
 %% Way UP (LS to HS)
 J1 = 170;%
@@ -35,15 +44,18 @@ pLS2 = 0; %percentage of interior spins locked in LS
 pHS2 = 0; %percentage of interior spins locked in HS
 boundCond2 = (0); %boundary condition
 
-%%
+%% SIMULATION PARAMETERS
+
 evo = 50e1; %number of MC steps to let the system burn in; this is discarded
 dataPts = 50e1; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 10; % provides a modulus to save snapshot of system
 
 
+k_b = 8.617333262*10^-5;%eV/K
+mu = 1; %atomic magnetic moment
 
-%% DIMENSIONLESS UNITS (Formatting for program)
+%% CONVERSION TO DIMENSIONLESS UNITS (Formatting for program)
 
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
@@ -89,26 +101,29 @@ p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
 saveIntResults = false;
 
 %Energy output variables
-E = zeros(1, length(k1));
-Snn = zeros(1, length(k1));
+E = zeros(1, length(k));
+Snn = zeros(1, length(k));
 
 %Magnetism output variables
-B = zeros(1, length(k1));
+B = zeros(1, length(k));
 
 %Spin fraction output variables
-n_HS1 = zeros(1, length(k1));
-n_HS2 = zeros(1, length(k2));
+n_HS = zeros(1, length(k));
+
+
+
 
 %%
 for p = 1:numTrials
     
+    %%
     if numTrials>1 || ~saveIntResults
         % save all trials in a single directory at highest level
         t = datetime('now');
         t.Format = "yyMMdd";
         tryName = num2str(numTrials);
         dat_str0 = string(t);
-        trial_dir = strcat('..\..\',dat_str0,'_',tryName,'trialRuns');
+        trial_dir = strcat('..\..\',dat_str0,'_',tryName,'_3DtrialRuns');
         mkdir(trial_dir)
     else
         % no group directory required
@@ -116,8 +131,7 @@ for p = 1:numTrials
     end
     
     %%
-    
-    for numSpins = 1:length(L) % square root of number of spins
+    for numSpins = 1:length(L)% square root of number of spins
         
         N = L(numSpins);
         
@@ -126,72 +140,70 @@ for p = 1:numTrials
             t = datetime('now');
             t.Format = "yyMMdd";
             dat_str = string(t);
-            dir_name = strcat(trial_dir,'\',dat_str,p_name{p},'_',num2str(N),'spins');
+            dir_name = strcat(trial_dir,'\',dat_str,p_name{p},'_',num2str(N),'spins3D');
             mkdir(dir_name)
             mkdir(dir_name,'frames')
         else
             dir_name = "";
         end
-        %initialize 2D lattice
-        [spins, listLS] = initializeLattice(N, boundCond1, pLS1, pHS1); %randomly initializes 2D lattice
+        
+        %initialize 3D lattice
+        [spins, listLS] = initializeLattice3D(...
+            N, D, boundCond, lock, probLock); %randomly initializes 3D lattice
         
         origSpins = spins;
         
         % View initial lattice
         %{
-        figure;
-        imagesc(spins)
-        axis square
-        title("Initial Lattice")
+        figure
+        spinVis(spins)
+        axis equal
+        pause(1)
+        close
         %}
         figure;
-        %%
-        for temp = 1:length(k1)
-            %copy spins for later comparison
-            spins_last = spins;
-            
-            %let state reach equilibrium
-            X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv1(temp));
-            disp(X)
-            [spins, ~, ~] = equilibrateSpins_H(...
-                evo, spins, k1(temp), T1(temp), mu, H1, J1,...
-                big_delta1, ln_g1, G1, listLS,...
-                frameRate, dir_name, saveIntResults);
-            
-            %take data
-            fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
-                equilibrateSpins_H(...
-                dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
-                big_delta1, ln_g1, G1, listLS, ...
-                frameRate, dir_name, saveIntResults);
-            
-            close;
-            toc
-        end
         
-        %%
-        for temp = 1:length(k2)
+        for temp = 1:length(k)
             %copy spins for later comparison
             spins_last = spins;
             
             %let state reach equilibrium
-            X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv2(temp));
+            X = sprintf('Cooling %d x %d x %d spins to temp %f ....',...
+                N, N, D, T_inv(temp));
             disp(X)
-            [spins, ~, ~] = equilibrateSpins_H(...
-                evo, spins, k2(temp), T2(temp), mu, H2, J2,...
-                big_delta2, ln_g2, G2, listLS,...
+         
+            [spins, ~, ~] = equilibrateSpins_3D(...
+                evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), n_HS2(p, temp, numSpins)] = ...
-                equilibrateSpins_H(...
-                dataPts, spins, k2(temp), T2(temp), mu, H2, J2, ...
-                big_delta2, ln_g2, G2, listLS, ...
+            [spins, E(p, temp, numSpins), n_HS(p, temp, numSpins)] = ...
+                equilibrateSpins_3D(...
+                dataPts, spins, k(temp), T(temp), mu, H, J, ...
+                big_delta, ln_g, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             close;
+            %{
+            if saveIntResults
+                
+                file_name = strcat(dir_name,'\',dat_str, p_name{p}, num2str(N),...
+                    'spins_k_', num2str(T(temp)), 'K.txt');
+                image_name = strcat(dir_name,'\',dat_str, p_name{p},num2str(N),...
+                    'spins_k_', num2str(T(temp)), 'K.png');
+                
+                %save spin matrix to text file
+                writematrix(spins,file_name);
+                
+                %save final spin
+                figure;
+                spinVis(spins)
+                axis square;
+                saveas(gcf, image_name);
+                close
+            end
+            %}
             toc
         end
     end
@@ -199,15 +211,14 @@ end
 
 %% PLOTTING
 
-legArr = {strcat("T Inc, J=",J_nom1, "K, ln(g)=",num2str(ln_g1)),...
-    strcat("T Dec, J=", J_nom2, "K, ln(g)=",num2str(ln_g2))};
-%legArr = makeLegend(L);
+legArr = makeLegend(L, D);
 set(0,'DefaultTextInterpreter','none')
 
 if numTrials > 1
     
     meanE = squeeze(mean(E));
     mean_nHS = squeeze(mean(n_HS))';
+    
     
     %%
     close all
@@ -221,69 +232,51 @@ if numTrials > 1
     hold off
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
     %}
-    plt_title = strcat('\rm ',' \Delta=',bD_nom1,'K');
-    named = strcat(trial_dir,'\',dat_str0,'_',...
-        'nHSvsT','_Jinc',J_nom1,'K_Jdec',J_nom2,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1),'_lngdec',num2str(ln_g2));
-
+    
+    plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
+    
     figure
-    plot(T_inv1, mean_nHS,'b*-')
+    plot(T_inv, mean_nHS,'*-k')
     hold on
     title(plt_title, 'Interpreter', 'tex')
     xlabel("Temperature T (K)")
     ylabel("n_H_S", 'Interpreter','tex')
-    axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
     axis([-inf inf 0 1.0])
     hold off
+    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
     
-    saveas(gcf, strcat(named, '.png'))
-    T_out = [T_inv1 T_inv2];
-    nHS_out = [n_HS1 n_HS2];
-    
-    writematrix([T_out nHS_out],strcat(named, '.txt'));
+    writematrix([T_inv' mean_nHS], strcat(trial_dir,'\',dat_str0,'_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.txt'));
 else
-    n_HS1 = squeeze(n_HS1);
-    n_HS2 = squeeze(n_HS2);
-    
-    nom = strcat(trial_dir,'\',dat_str0,'_',...
-        'nHSvsT','_J',J_nom1,'K_D',bD_nom1,'K_pLS',num2str(pLS1),...
-        '_pHS',num2str(pHS1),'_L',num2str(L));
-    
-        named = strcat(trial_dir,'\',dat_str0,'_',...
-        'nHSvsT','_Jinc',J_nom1,'K_Jdec',J_nom2,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1),'_lngdec',num2str(ln_g2));
-
     
     %figure
     %plot(T, E)
     %title("E")
-    plt_title = strcat('\rm \Delta=',bD_nom1,'K');
+    
     figure
-    plot(T_inv1, n_HS1,'r.-')
+    plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
+    
+    plot(T_inv', n_HS(1,:), '*-k')
     hold on
-    plot(T_inv2, n_HS2,'b.-')
-    grid on
-    title(plt_title, 'interpreter','tex')
+    title(plt_title,'Interpreter', 'tex')
     xlabel("Temperature T (K)")
-    ylabel("n_H_S",'Interpreter','tex')
-    axis([-inf inf 0 1.01])
+    ylabel("n_H_S"','Interpreter','tex')
     legend(legArr,'Location','southeast')
+    axis([-inf inf 0 1.0])
     hold off
+    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
     
-    
-    saveas(gcf, strcat(named, '.png'))
-    T_out = [T_inv1 T_inv2];
-    nHS_out = [n_HS1 n_HS2];
-    
-    writematrix([T_out; nHS_out]',strcat(named, '.txt'));
-    
+    writematrix([T_inv' n_HS(1,:)'], strcat(trial_dir,'\',dat_str0,'_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.txt'));
 end
 
-
-
-function legArr = makeLegend(L)
+function legArr = makeLegend(L,D)
 %returns a legend given an array of lattice sizes
 legArr = cell(max(size(L)),1);
 for idx = 1:max(size(L))
-    legArr{idx} = strcat(num2str(L(idx)),'x',num2str(L(idx)),' spins');
+    legArr{idx} = strcat(num2str(L(idx)),'x',num2str(L(idx)),'x',num2str(D),' spins');
 end
 end
