@@ -51,7 +51,6 @@ dataPts = 50e1; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 10; % provides a modulus to save snapshot of system
 
-
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
