@@ -184,25 +184,7 @@ for p = 1:numTrials
                 frameRate, dir_name, saveIntResults);
             
             close;
-            %{
-            if saveIntResults
-                
-                file_name = strcat(dir_name,'\',dat_str, p_name{p}, num2str(N),...
-                    'spins_k_', num2str(T(temp)), 'K.txt');
-                image_name = strcat(dir_name,'\',dat_str, p_name{p},num2str(N),...
-                    'spins_k_', num2str(T(temp)), 'K.png');
-                
-                %save spin matrix to text file
-                writematrix(spins,file_name);
-                
-                %save final spin
-                figure;
-                spinVis(spins)
-                axis square;
-                saveas(gcf, image_name);
-                close
-            end
-            %}
+
             toc
         end
     end

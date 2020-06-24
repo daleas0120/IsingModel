@@ -11,8 +11,6 @@ lock: [1, -1]
 p: probability with which spin is locked
 
 %}
-
-
 spins = rand(N - 2); %decide how many ones there are
 pt = 1;
 locked(pt, :) = [0 0];
