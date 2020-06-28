@@ -90,17 +90,20 @@ saveIntResults: boolean to control writing of frame samples
         %E(idx, 1) = -J*Snn;
         nHS(idx, 1) = n_HSfrac3D(spins);
         
-        if mod(idx, frameRate) == 0
+        %%{
+        if (mod(idx, frameRate) == 0) && saveIntResults
             pltTitle = strcat(num2str(N),'spins','_T=',num2str(T),'_', num2str(idx));
             spinVis(spins)
             title(pltTitle)
-            axis equal;
+            %axis equal;
             pause(0.05);
             if saveIntResults
                 frame_name = strcat(dir_name,'\frames\',pltTitle,".png");
                 saveas(gcf, frame_name)
             end
+        
         end
+        %%}
     end
     
     %E = mean(E);

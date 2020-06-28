@@ -7,23 +7,35 @@
 tic
 clear;
 
-%% LATTICE PARAMETERS
-probLock = 0.575; %percentage of spins locked
-lock = (-1); %Locked in LS or HS
-boundCond = (-1); %boundary condition
+%% SIMULATION PARAMETERS
 
+evo = 50e0; %number of MC steps to let the system burn in; this is discarded
+dataPts = 50e0; %number of MC steps to evaluate the system
+numTrials = 1; %number of times to repeat the experiment
+frameRate = 10; % provides a modulus to save snapshot of system
+saveIntResults = false;% save intermediate results:
+
+k_b = 8.617333262*10^-5;%eV/K 
+mu = 1; %atomic magnetic moment
+
+%% LATTICE PARAMETERS
+
+boundCond = (0); %boundary condition
 %L = [4, 7, 10, 40];
-L = [10];
-D = 3;
+L = [37];
+D = 37;
 
 %% MOLECULE PARAMETERS
 
+bd = 1325;
+
 %% Way UP (LS to HS)
-J1 = 170;%
-T1 = [300:5:400];%K
+J1 = 10;%
+%T1 = 100;
+T1 = [80:20:320];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
-ln_g1 = 42.75/8.31;
+ln_g1 = 60/8.31;
 G1 = 0;%K
 H1 = 0; %external magnetic field
 
@@ -32,27 +44,18 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 125;%
-T2 = [400:-5:300];%K
+J2 = 10;%
+T2 = []
+%T2 = [320:-20:80];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
-ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
+ln_g2 = 75/8.31; %ratio of degeneracy HS to LS
 G2 = 0;%K
 H2 = 0; %external magnetic field
 
 pLS2 = 0; %percentage of interior spins locked in LS
 pHS2 = 0; %percentage of interior spins locked in HS
 boundCond2 = (0); %boundary condition
-
-%% SIMULATION PARAMETERS
-
-evo = 50e1; %number of MC steps to let the system burn in; this is discarded
-dataPts = 50e1; %number of MC steps to evaluate the system
-numTrials = 1; %number of times to repeat the experiment
-frameRate = 10; % provides a modulus to save snapshot of system
-
-k_b = 8.617333262*10^-5;%eV/K
-mu = 1; %atomic magnetic moment
 
 %% CONVERSION TO DIMENSIONLESS UNITS (Formatting for program)
 
@@ -95,21 +98,19 @@ T_inv2 = (abs(J_ev2).*T2)./k_b;
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_', 'w_', ...
     'x_', 'y_', 'z_', 'A_', 'B_', 'C_', 'D_'};
-
-% save intermediate results:
-saveIntResults = false;
-
 %Energy output variables
-E = zeros(1, length(k));
-Snn = zeros(1, length(k));
+E = zeros(1, length(k1));
+Snn = zeros(1, length(k1));
 
 %Magnetism output variables
-B = zeros(1, length(k));
-
+B = zeros(1, length(k1));
+%%
 %Spin fraction output variables
-n_HS = zeros(1, length(k));
+n_HS1 = zeros(1, length(k1));
+n_HS2 = zeros(1, length(k2));
 
-
+nHS_by_layer1 = zeros(D, length(k1));
+nHS_by_layer2 = zeros(D, length(k2));
 
 
 %%
@@ -147,8 +148,8 @@ for p = 1:numTrials
         end
         
         %initialize 3D lattice
-        [spins, listLS] = initializeLattice3D(...
-            N, D, boundCond, lock, probLock); %randomly initializes 3D lattice
+        [spins, listLS] = initializeLattice3D_ones(...
+            N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
         
         origSpins = spins;
         
@@ -156,50 +157,86 @@ for p = 1:numTrials
         %{
         figure
         spinVis(spins)
-        axis equal
+        %axis equal
         pause(1)
-        close
+        %close
         %}
         figure;
         
-        for temp = 1:length(k)
+        for temp = 1:length(k1)
             %copy spins for later comparison
             spins_last = spins;
             
             %let state reach equilibrium
             X = sprintf('Cooling %d x %d x %d spins to temp %f ....',...
-                N, N, D, T_inv(temp));
+                N, N, D, T_inv1(temp));
             disp(X)
-         
+            
             [spins, ~, ~] = equilibrateSpins_3D(...
-                evo, spins, k(temp), T(temp), mu, H, J, big_delta, ln_g, listLS, ...
+                evo, spins, k1(temp), T1(temp), mu, H1, J1,...
+                big_delta1, ln_g1, listLS,...
                 frameRate, dir_name, saveIntResults);
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), n_HS(p, temp, numSpins)] = ...
+            [spins, E(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
                 equilibrateSpins_3D(...
-                dataPts, spins, k(temp), T(temp), mu, H, J, ...
-                big_delta, ln_g, listLS, ...
+                dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
+                big_delta1, ln_g1, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
-            close;
-
+            nHS_by_layer1(:,temp) = nHS_layer(spins);
+            
+            %close;
+            %spinVis(spins)
+            %pause(1)
+            %axis equal
             toc
         end
+        %%{
+        for temp = 1:length(k2)
+            %copy spins for later comparison
+            spins_last = spins;
+            
+            %let state reach equilibrium
+            X = sprintf('Cooling %d x %d x %d spins to temp %f ....',...
+                N, N, D, T_inv2(temp));
+            disp(X)
+            
+            [spins, ~, ~] = equilibrateSpins_3D(...
+                evo, spins, k2(temp), T2(temp), mu, H2, J2, big_delta2, ln_g2, listLS, ...
+                frameRate, dir_name, saveIntResults);
+            
+            %take data
+            fprintf("Taking Data\n")
+            [spins, E(p, temp, numSpins), n_HS2(p, temp, numSpins)] = ...
+                equilibrateSpins_3D(...
+                dataPts, spins, k2(temp), T2(temp), mu, H2, J2, ...
+                big_delta2, ln_g2, listLS, ...
+                frameRate, dir_name, saveIntResults);
+            
+            nHS_by_layer2(:, temp) = nHS_layer(spins);
+            
+            %spinVis(spins)
+            %axis equal
+            %pause(1)
+            
+            toc
+        end
+        %}
+        
     end
 end
-
 %% PLOTTING
-
-legArr = makeLegend(L, D);
+legArr = {strcat("T Inc, J=",J_nom1, "K, ln(g)=",num2str(ln_g1)),...
+    strcat("T Dec, J=", J_nom2, "K, ln(g)=",num2str(ln_g2))};
+%legArr = makeLegend(L);
 set(0,'DefaultTextInterpreter','none')
 
 if numTrials > 1
     
     meanE = squeeze(mean(E));
     mean_nHS = squeeze(mean(n_HS))';
-    
     
     %%
     close all
@@ -213,45 +250,64 @@ if numTrials > 1
     hold off
     saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
     %}
-    
-    plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
+    plt_title = strcat('\rm ',' \Delta=',bD_nom1,'K');
+    named = strcat(trial_dir,'\',dat_str0,'_',...
+        'nHSvsT','_Jinc',J_nom1,'K_Jdec',J_nom2,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1),'_lngdec',num2str(ln_g2));
     
     figure
-    plot(T_inv, mean_nHS,'*-k')
+    plot(T_inv1, mean_nHS,'b*-')
     hold on
     title(plt_title, 'Interpreter', 'tex')
     xlabel("Temperature T (K)")
     ylabel("n_H_S", 'Interpreter','tex')
+    axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
     axis([-inf inf 0 1.0])
     hold off
-    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
-        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
     
-    writematrix([T_inv' mean_nHS], strcat(trial_dir,'\',dat_str0,'_',...
-        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.txt'));
+    saveas(gcf, strcat(named, '.png'))
+    T_out = [T_inv1 T_inv2];
+    nHS_out = [n_HS1 n_HS2];
+    
+    writematrix([T_out nHS_out],strcat(named, '.txt'));
 else
+    n_HS1 = squeeze(n_HS1);
+    n_HS2 = squeeze(n_HS2);
+    
+    nom = strcat(trial_dir,'\',dat_str0,'_',...
+        'nHSvsT','_J',J_nom1,'K_D',bD_nom1,'K_pLS',num2str(pLS1),...
+        '_pHS',num2str(pHS1),'_L',num2str(L));
+    
+    named = strcat(trial_dir,'\',dat_str0,'_',...
+        'nHSvsT','_Jinc',J_nom1,'K_Jdec',J_nom2,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1),'_lngdec',num2str(ln_g2));
+    
     
     %figure
     %plot(T, E)
     %title("E")
-    
+    plt_title = strcat('\rm \Delta=',bD_nom1,'K');
     figure
-    plt_title = strcat('\rm ','J=',J_nom, 'K and ',' \Delta=',bD_nom,'K');
-    
-    plot(T_inv', n_HS(1,:), '*-k')
+    plot(T_inv1, n_HS1,'r.-')
     hold on
-    title(plt_title,'Interpreter', 'tex')
+    plot(T_inv2, n_HS2,'b.-')
+    grid on
+    title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
-    ylabel("n_H_S"','Interpreter','tex')
+    ylabel("n_H_S",'Interpreter','tex')
+    axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
-    axis([-inf inf 0 1.0])
     hold off
-    saveas(gcf, strcat(trial_dir,'\',dat_str0,'_',...
-        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
     
-    writematrix([T_inv' n_HS(1,:)'], strcat(trial_dir,'\',dat_str0,'_',...
-        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.txt'));
+    
+    saveas(gcf, strcat(named, '.png'))
+    T_out = [T_inv1 T_inv2];
+    nHS_out = [n_HS1 n_HS2];
+    
+    writematrix([T_out; nHS_out]',strcat(named, '.txt'));
+    
+    plot_nHSlayers(nHS_by_layer1, nHS_by_layer2, T_inv1, T_inv2)
+    saveas(gcf, strcat(named, 'BYLAYER.png'))
+    
 end
 
 function legArr = makeLegend(L,D)

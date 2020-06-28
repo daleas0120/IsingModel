@@ -12,7 +12,8 @@ pLS: probability spin is locked in LS state
 pHS: probability spin is locked in HS state
 %}
 
-spinD = b.*ones(N);
+%spinD = b.*ones(N);
+spinD = ones(N);
 
 pt = 1;
 listLS(pt, :) = [0 0 0];
