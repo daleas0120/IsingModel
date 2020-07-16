@@ -33,7 +33,7 @@ saveIntResults: boolean to control writing of frame samples
     
     %% some optimization
     
-    longRange = (big_delta/2 - T*ln_g/2);
+    longRange = (big_delta - T*ln_g)/2;
     
     
     

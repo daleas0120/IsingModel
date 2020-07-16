@@ -13,7 +13,7 @@ pHS: probability spin is locked in HS state
 %}
 
 %spinD = b.*ones(N);
-spinD = ones(N);
+spinD = -1*ones(N);
 
 pt = 1;
 listLS(pt, :) = [0 0 0];
@@ -29,7 +29,7 @@ for kdx = 1:(D-2)
                 
                 spins(idx, jdx) = 1;
                 
-                if rand < 2*pHS && (kdx == 1)
+                if rand < 2*pHS %&& (kdx == 1)
                     listLS(pt, :) = [(idx+1) (jdx+1) (kdx+1)];
                     pt = pt + 1;
                 end
@@ -37,7 +37,7 @@ for kdx = 1:(D-2)
             else
                 spins(idx, jdx) = (-1);
                 
-                if rand < 2*pLS &&(kdx == 1)
+                if rand < 2*pLS %&&(kdx == 1)
                     listLS(pt, :) = [(idx+1) (jdx+1) (kdx+1)];
                     pt = pt + 1;
                 end

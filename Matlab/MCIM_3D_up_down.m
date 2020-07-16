@@ -7,6 +7,9 @@
 tic
 clear;
 
+k_b = 8.617333262*10^-5;%eV/K 
+mu = 1; %atomic magnetic moment
+
 %% SIMULATION PARAMETERS
 
 evo = 50e0; %number of MC steps to let the system burn in; this is discarded
@@ -15,27 +18,22 @@ numTrials = 1; %number of times to repeat the experiment
 frameRate = 10; % provides a modulus to save snapshot of system
 saveIntResults = false;% save intermediate results:
 
-k_b = 8.617333262*10^-5;%eV/K 
-mu = 1; %atomic magnetic moment
-
 %% LATTICE PARAMETERS
-
 boundCond = (0); %boundary condition
 %L = [4, 7, 10, 40];
 L = [37];
 D = 37;
 
 %% MOLECULE PARAMETERS
-
 bd = 1325;
 
 %% Way UP (LS to HS)
 J1 = 10;%
-%T1 = 100;
-T1 = [80:20:320];%K
+%T1 = 2200;
+T1 = [0 80:20:320 2200];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
-ln_g1 = 60/8.31;
+ln_g1 = 67.5/8.31;
 G1 = 0;%K
 H1 = 0; %external magnetic field
 
@@ -45,8 +43,8 @@ boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
 J2 = 10;%
-T2 = []
-%T2 = [320:-20:80];%K
+%T2 = 0;
+T2 = [2200 320:-20:80 0];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
 ln_g2 = 75/8.31; %ratio of degeneracy HS to LS
@@ -148,21 +146,25 @@ for p = 1:numTrials
         end
         
         %initialize 3D lattice
-        [spins, listLS] = initializeLattice3D_ones(...
+        
+        %[spins, listLS] = initializeLattice3D_ones(...
+        %    N, D, boundCond, pLS1, pHS1);
+        
+        [spins, listLS] = initializeLattice3D(...
             N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
         
         origSpins = spins;
         
         % View initial lattice
-        %{
+        %%{
         figure
         spinVis(spins)
-        %axis equal
+        axis equal
         pause(1)
-        %close
+        close
         %}
         figure;
-        
+        %%
         for temp = 1:length(k1)
             %copy spins for later comparison
             spins_last = spins;
@@ -193,6 +195,7 @@ for p = 1:numTrials
             %axis equal
             toc
         end
+        %%
         %%{
         for temp = 1:length(k2)
             %copy spins for later comparison

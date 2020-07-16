@@ -52,11 +52,18 @@ bc_x = X(bc_c);
 bc_y = Y(bc_c);
 bc_z = Z(bc_c);
 
+%adjust marker size based on number of points:
+if (m*n*p) > 50000
+    markerSize = 15;
+else
+    markerSize = 2;
+end
+
 %scatter3(X, Y, Z, 2, C)
-scatter3(hs_x, hs_y, hs_z, 2, [1,0,1])
+scatter3(hs_x, hs_y, hs_z, markerSize, [1,0,1])
 hold on
-scatter3(ls_x, ls_y, ls_z, 2, [0,1,0])
-scatter3(bc_x, bc_y, bc_z, 2, [0,1,1])
+scatter3(ls_x, ls_y, ls_z, markerSize, [0,1,0])
+scatter3(bc_x, bc_y, bc_z, markerSize, [0,1,1])
 
 %{
 for i = 1:m
@@ -84,4 +91,5 @@ legend({'HS', 'LS', '0'})
 set(gcf, 'Position',[100, 100, 1250, 750])
 hold off
 pause(1)
+title(strcat(num2str(m), 'x', num2str(n), 'x', num2str(p), ' Lattice'))
 end
