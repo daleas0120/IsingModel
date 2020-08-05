@@ -150,8 +150,11 @@ for p = 1:numTrials
         %[spins, listLS] = initializeLattice3D_ones(...
         %    N, D, boundCond, pLS1, pHS1);
         
-        [spins, listLS] = initializeLattice3D(...
-            N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
+        %[spins, listLS] = initializeLattice3D(...
+        %    N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
+        
+        [spins, listLS] = initializeLattice3D_pin(...
+            N, D, boundCond, pLS1, pHS1, 1); 
         
         origSpins = spins;
         
@@ -302,14 +305,14 @@ else
     hold off
     
     
-    saveas(gcf, strcat(named, '.png'))
+   % saveas(gcf, strcat(named, '.png'))
     T_out = [T_inv1 T_inv2];
     nHS_out = [n_HS1 n_HS2];
     
     writematrix([T_out; nHS_out]',strcat(named, '.txt'));
     
     plot_nHSlayers(nHS_by_layer1, nHS_by_layer2, T_inv1, T_inv2)
-    saveas(gcf, strcat(named, 'BYLAYER.png'))
+    %saveas(gcf, strcat(named, 'BYLAYER.png'))
     
 end
 
