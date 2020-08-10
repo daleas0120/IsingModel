@@ -28,7 +28,7 @@ D = 37;
 bd = 1325;
 
 %% Way UP (LS to HS)
-J1 = 10;%
+J1 = 500;%
 %T1 = 2200;
 T1 = [0 80:20:320 2200];%K
 big_delta1 = bd;%K
@@ -42,7 +42,7 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 10;%
+J2 = 500;%
 %T2 = 0;
 T2 = [2200 320:-20:80 0];%K
 big_delta2 = bd;%K
@@ -154,7 +154,7 @@ for p = 1:numTrials
         %    N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
         
         [spins, listLS] = initializeLattice3D_pin(...
-            N, D, boundCond, pLS1, pHS1, 1); 
+            N, D, boundCond, pLS1, pHS1, 2); 
         
         origSpins = spins;
         
@@ -293,9 +293,9 @@ else
     %title("E")
     plt_title = strcat('\rm \Delta=',bD_nom1,'K');
     figure
-    plot(T_inv1, n_HS1,'r.-')
+    plot(T_inv1(1:15), n_HS1(1:15),'r.-')
     hold on
-    plot(T_inv2, n_HS2,'b.-')
+    plot(T_inv2(1:15), n_HS2(1:15),'b.-')
     grid on
     title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
@@ -305,14 +305,16 @@ else
     hold off
     
     
-   % saveas(gcf, strcat(named, '.png'))
+    saveas(gcf, strcat(named, 'a.png'))
     T_out = [T_inv1 T_inv2];
     nHS_out = [n_HS1 n_HS2];
     
     writematrix([T_out; nHS_out]',strcat(named, '.txt'));
     
     plot_nHSlayers(nHS_by_layer1, nHS_by_layer2, T_inv1, T_inv2)
-    %saveas(gcf, strcat(named, 'BYLAYER.png'))
+    saveas(gcf, strcat(named, 'BYLAYER.png'))
+    plot_nHSlayers_hyst(nHS_by_layer1, nHS_by_layer2, T_inv1, T_inv2);
+    saveas(gcf, strcat(named, 'BYLAYER_hyst.png'))
     
 end
 
