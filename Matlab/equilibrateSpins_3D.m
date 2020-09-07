@@ -26,14 +26,14 @@ saveIntResults: boolean to control writing of frame samples
     %}
     
     set(0,'DefaultTextInterpreter','none')
-    
+    omega = 0.001;
     E = zeros(time, 1);
     nHS = zeros(time, 1);
     [N, ~, D] = size(spins);
     
     %% some optimization
     
-    longRange = (big_delta - T*ln_g)/2;
+    longRange = omega*(big_delta - T*ln_g)/2;
     
     
     

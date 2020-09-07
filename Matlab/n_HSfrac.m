@@ -16,6 +16,10 @@ sum_Si = sum(spins(2:N-1, 2:N-1), 'all');
 
 mean = sum_Si/((N-2)^2);
 
+%if mean == 0
+%    mean = -1;
+%end
+
 nHS = (1+mean)/2;
 
 end

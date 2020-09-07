@@ -56,7 +56,7 @@ bc_z = Z(bc_c);
 if (m*n*p) > 50000
     markerSize = 15;
 else
-    markerSize = 2;
+    markerSize = 15;
 end
 
 %scatter3(X, Y, Z, 2, C)
@@ -86,7 +86,7 @@ for i = 1:m
 end
 %}
 grid on
-%axis equal
+axis equal
 legend({'HS', 'LS', '0'})
 set(gcf, 'Position',[100, 100, 1250, 750])
 hold off

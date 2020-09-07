@@ -12,8 +12,8 @@ mu = 1; %atomic magnetic moment
 
 %% SIMULATION PARAMETERS
 
-evo = 50e0; %number of MC steps to let the system burn in; this is discarded
-dataPts = 50e0; %number of MC steps to evaluate the system
+evo = 500e0; %number of MC steps to let the system burn in; this is discarded
+dataPts = 200e0; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 10; % provides a modulus to save snapshot of system
 saveIntResults = false;% save intermediate results:
@@ -21,16 +21,16 @@ saveIntResults = false;% save intermediate results:
 %% LATTICE PARAMETERS
 boundCond = (0); %boundary condition
 %L = [4, 7, 10, 40];
-L = [37];
-D = 37;
+L = [12];
+D = 12;
 
 %% MOLECULE PARAMETERS
 bd = 1325;
 
 %% Way UP (LS to HS)
-J1 = 500;%
+J1 = 100;%
 %T1 = 2200;
-T1 = [0 80:20:320 2200];%K
+T1 = [250:1:750];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
 ln_g1 = 67.5/8.31;
@@ -42,12 +42,13 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 500;%
+J2 = 100;%
 %T2 = 0;
-T2 = [2200 320:-20:80 0];%K
+T2 = [750:-1:250];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
-ln_g2 = 75/8.31; %ratio of degeneracy HS to LS
+%ln_g2 = 75/8.31; %ratio of degeneracy HS to LS
+ln_g2 = ln_g1;
 G2 = 0;%K
 H2 = 0; %external magnetic field
 
@@ -118,7 +119,7 @@ for p = 1:numTrials
     if numTrials>1 || ~saveIntResults
         % save all trials in a single directory at highest level
         t = datetime('now');
-        t.Format = "yyMMdd";
+        t.Format = "yyMMddHHmm";
         tryName = num2str(numTrials);
         dat_str0 = string(t);
         trial_dir = strcat('..\..\',dat_str0,'_',tryName,'_3DtrialRuns');
@@ -150,11 +151,11 @@ for p = 1:numTrials
         %[spins, listLS] = initializeLattice3D_ones(...
         %    N, D, boundCond, pLS1, pHS1);
         
-        %[spins, listLS] = initializeLattice3D(...
-        %    N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
+        [spins, listLS] = initializeLattice3D(...
+            N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
         
-        [spins, listLS] = initializeLattice3D_pin(...
-            N, D, boundCond, pLS1, pHS1, 2); 
+        %[spins, listLS] = initializeLattice3D_pin(...
+         %   N, D, boundCond, pLS1, pHS1, 2); 
         
         origSpins = spins;
         
@@ -293,9 +294,9 @@ else
     %title("E")
     plt_title = strcat('\rm \Delta=',bD_nom1,'K');
     figure
-    plot(T_inv1(1:15), n_HS1(1:15),'r.-')
+    plot(T_inv1, n_HS1,'r.-', 'LineWidth',2)
     hold on
-    plot(T_inv2(1:15), n_HS2(1:15),'b.-')
+    plot(T_inv2, n_HS2,'b.-', 'LineWidth',2)
     grid on
     title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
