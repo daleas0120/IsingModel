@@ -1,4 +1,4 @@
-function [spins, E, nHS] = equilibrateSpins_3D(...
+function [spins, E, H, nHS] = equilibrateSpins_3D(...
     time, spins, ~, T, ~, ~, J, big_delta, ln_g, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
@@ -29,6 +29,7 @@ saveIntResults: boolean to control writing of frame samples
     
     E = zeros(time, 1);
     nHS = zeros(time, 1);
+    H = zeros(time, 1);
     [N, ~, D] = size(spins);
     
     %% some optimization
@@ -89,6 +90,7 @@ saveIntResults: boolean to control writing of frame samples
         
         %E(idx, 1) = -J*Snn;
         nHS(idx, 1) = n_HSfrac3D(spins);
+        H(idx, 1) = magnetism(spins(2:N-1, 2:N-1, 2:D-1));
         
         %%{
         if (mod(idx, frameRate) == 0) && saveIntResults
@@ -109,5 +111,6 @@ saveIntResults: boolean to control writing of frame samples
     %E = mean(E);
     E=0;
     nHS = mean(nHS);
+    H = mean(H);
     
 end

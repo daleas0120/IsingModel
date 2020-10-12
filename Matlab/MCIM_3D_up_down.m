@@ -28,12 +28,14 @@ D = 37;
 bd = 1325;
 
 %% Way UP (LS to HS)
-J1 = 500;%
+J1 = 170;%
 %T1 = 2200;
 T1 = [0 80:20:320 2200];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
-ln_g1 = 67.5/8.31;
+%ln_g1 = 67.5/8.31;
+ln_g1 = 48.2/8.31;
+
 G1 = 0;%K
 H1 = 0; %external magnetic field
 
@@ -42,12 +44,12 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 500;%
+J2 = 125;%
 %T2 = 0;
 T2 = [2200 320:-20:80 0];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
-ln_g2 = 75/8.31; %ratio of degeneracy HS to LS
+ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
 G2 = 0;%K
 H2 = 0; %external magnetic field
 
@@ -101,7 +103,7 @@ E = zeros(1, length(k1));
 Snn = zeros(1, length(k1));
 
 %Magnetism output variables
-B = zeros(1, length(k1));
+H = zeros(1, length(k1));
 %%
 %Spin fraction output variables
 n_HS1 = zeros(1, length(k1));
@@ -177,14 +179,14 @@ for p = 1:numTrials
                 N, N, D, T_inv1(temp));
             disp(X)
             
-            [spins, ~, ~] = equilibrateSpins_3D(...
+            [spins, ~, ~, ~] = equilibrateSpins_3D(...
                 evo, spins, k1(temp), T1(temp), mu, H1, J1,...
                 big_delta1, ln_g1, listLS,...
                 frameRate, dir_name, saveIntResults);
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
+            [spins, E(p, temp, numSpins), H(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
                 equilibrateSpins_3D(...
                 dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
                 big_delta1, ln_g1, listLS, ...
