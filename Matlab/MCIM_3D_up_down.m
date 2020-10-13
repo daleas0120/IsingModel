@@ -9,6 +9,7 @@ clear;
 
 k_b = 8.617333262*10^-5;%eV/K 
 mu = 1; %atomic magnetic moment
+T_c = 4.515;
 
 %% SIMULATION PARAMETERS
 
@@ -21,8 +22,8 @@ saveIntResults = false;% save intermediate results:
 %% LATTICE PARAMETERS
 boundCond = (0); %boundary condition
 %L = [4, 7, 10, 40];
-L = [37];
-D = 37;
+L = [122];
+D = 122;
 
 %% MOLECULE PARAMETERS
 bd = 1940;
@@ -34,7 +35,8 @@ T1 = [300:5:400];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
 %ln_g1 = 67.5/8.31;
-ln_g1 = 48.2/8.31;
+%ln_g1 = 48.2/8.31;
+ln_g1 = 5.1745;
 
 G1 = 0;%K
 H1 = 0; %external magnetic field
@@ -49,7 +51,8 @@ J2 = 95;%
 T2 = [400:-5:300];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
-ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
+%ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
+ln_g2 = 5.8002;
 G2 = 0;%K
 H2 = 0; %external magnetic field
 
