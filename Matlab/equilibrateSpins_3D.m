@@ -1,4 +1,4 @@
-function [spins, E, H, nHS] = equilibrateSpins_3D(...
+function [spins, E, nHS] = equilibrateSpins_3D(...
     time, spins, ~, T, ~, ~, J, big_delta, ln_g, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
@@ -111,6 +111,6 @@ saveIntResults: boolean to control writing of frame samples
     %E = mean(E);
     E=0;
     nHS = mean(nHS);
-    H = mean(H);
+
     
 end

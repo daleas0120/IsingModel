@@ -25,12 +25,12 @@ L = [37];
 D = 37;
 
 %% MOLECULE PARAMETERS
-bd = 1325;
+bd = 1940;
 
 %% Way UP (LS to HS)
-J1 = 170;%
+J1 = 135;%
 %T1 = 2200;
-T1 = [0 80:20:320 2200];%K
+T1 = [300:5:400];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
 %ln_g1 = 67.5/8.31;
@@ -44,9 +44,9 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 125;%
+J2 = 95;%
 %T2 = 0;
-T2 = [2200 320:-20:80 0];%K
+T2 = [400:-5:300];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
 ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
@@ -103,7 +103,8 @@ E = zeros(1, length(k1));
 Snn = zeros(1, length(k1));
 
 %Magnetism output variables
-H = zeros(1, length(k1));
+H1 = zeros(1, length(k1));
+H2 = zeros(1, length(k2));
 %%
 %Spin fraction output variables
 n_HS1 = zeros(1, length(k1));
@@ -152,11 +153,11 @@ for p = 1:numTrials
         %[spins, listLS] = initializeLattice3D_ones(...
         %    N, D, boundCond, pLS1, pHS1);
         
-        %[spins, listLS] = initializeLattice3D(...
-        %    N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
+        [spins, listLS] = initializeLattice3D(...
+            N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
         
-        [spins, listLS] = initializeLattice3D_pin(...
-            N, D, boundCond, pLS1, pHS1, 2); 
+        %[spins, listLS] = initializeLattice3D_pin(...
+        %    N, D, boundCond, pLS1, pHS1, 2); 
         
         origSpins = spins;
         
@@ -179,20 +180,21 @@ for p = 1:numTrials
                 N, N, D, T_inv1(temp));
             disp(X)
             
-            [spins, ~, ~, ~] = equilibrateSpins_3D(...
+            [spins, ~, ~] = equilibrateSpins_3D(...
                 evo, spins, k1(temp), T1(temp), mu, H1, J1,...
                 big_delta1, ln_g1, listLS,...
                 frameRate, dir_name, saveIntResults);
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), H(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
+            [spins, E(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
                 equilibrateSpins_3D(...
                 dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
                 big_delta1, ln_g1, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             nHS_by_layer1(:,temp) = nHS_layer(spins);
+            H1(1, temp) = magnetism(spins(2:(L-1), 2:(L-1), 2:(D-1)));
             
             %close;
             %spinVis(spins)
@@ -224,6 +226,8 @@ for p = 1:numTrials
                 frameRate, dir_name, saveIntResults);
             
             nHS_by_layer2(:, temp) = nHS_layer(spins);
+            
+            H2(1, temp) = magnetism(spins(2:(L-1), 2:(L-1), 2:(D-1)));
             
             %spinVis(spins)
             %axis equal
@@ -295,9 +299,9 @@ else
     %title("E")
     plt_title = strcat('\rm \Delta=',bD_nom1,'K');
     figure
-    plot(T_inv1(1:15), n_HS1(1:15),'r.-')
+    plot(T_inv1, n_HS1,'r.-')
     hold on
-    plot(T_inv2(1:15), n_HS2(1:15),'b.-')
+    plot(T_inv2, n_HS2,'b.-')
     grid on
     title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
