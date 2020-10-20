@@ -16,27 +16,27 @@ T_c = 4.515;
 evo = 50e0; %number of MC steps to let the system burn in; this is discarded
 dataPts = 50e0; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
-frameRate = 10; % provides a modulus to save snapshot of system
+frameRate = 1001; % provides a modulus to save snapshot of system
 saveIntResults = false;% save intermediate results:
 
 %% LATTICE PARAMETERS
 boundCond = (0); %boundary condition
 %L = [4, 7, 10, 40];
-L = [122];
-D = 122;
+L = [37];
+D = 37;
 
 %% MOLECULE PARAMETERS
-bd = 1940;
+bd = 1550;
 
 %% Way UP (LS to HS)
-J1 = 135;%
+J1 = 20;%
 %T1 = 2200;
-T1 = [300:5:400];%K
+T1 = [100:2:200];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
 %ln_g1 = 67.5/8.31;
 %ln_g1 = 48.2/8.31;
-ln_g1 = 5.1745;
+ln_g1 = 81.9/8.31;
 
 G1 = 0;%K
 H1 = 0; %external magnetic field
@@ -46,13 +46,14 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 95;%
+J2 = 20;%
 %T2 = 0;
-T2 = [400:-5:300];%K
+T2 = [200:-2:100];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
 %ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
-ln_g2 = 5.8002;
+%ln_g2 = 5.8002;
+ln_g2 = ln_g1;
 G2 = 0;%K
 H2 = 0; %external magnetic field
 
@@ -300,7 +301,8 @@ else
     %figure
     %plot(T, E)
     %title("E")
-    plt_title = strcat('\rm \Delta=',bD_nom1,'K');
+    plt_title = strcat('\rm \Delta=',bD_nom1,'K \n',...
+        num2str(L), 'x', num2str(L),'x', num2str(D), ' Lattice');
     figure
     plot(T_inv1, n_HS1,'r.-')
     hold on
