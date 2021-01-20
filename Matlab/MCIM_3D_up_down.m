@@ -13,8 +13,8 @@ T_c = 4.515;
 
 %% SIMULATION PARAMETERS
 
-evo = 50e0; %number of MC steps to let the system burn in; this is discarded
-dataPts = 50e0; %number of MC steps to evaluate the system
+evo = 50; %number of MC steps to let the system burn in; this is discarded
+dataPts = 50; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 1001; % provides a modulus to save snapshot of system
 saveIntResults = false;% save intermediate results:
@@ -26,20 +26,18 @@ L = [37];
 D = 37;
 
 %% MOLECULE PARAMETERS
-bd = 1550;
+bd = 1532;
 
 %% Way UP (LS to HS)
-J1 = 20;%
+J1 = 30;%
 %T1 = 2200;
-T1 = [100:2:200];%K
+T1 = [100:5:200];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
 %ln_g1 = 67.5/8.31;
 %ln_g1 = 48.2/8.31;
-ln_g1 = 81.9/8.31;
 
-G1 = 0;%K
-H1 = 0; %external magnetic field
+ln_g1 = 81.1/8.31;
 
 pLS1 = 0; %percentage of interior spins locked in LS
 pHS1 = 0; %percentage of interior spins locked in HS
@@ -48,15 +46,13 @@ boundCond1 = (0); %boundary condition
 %% WAY DOWN (HS to LS)
 J2 = 20;%
 %T2 = 0;
-T2 = [200:-2:100];%K
+T2 = [200:-5:100];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
 %ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
 %ln_g2 = 5.8002;
-ln_g2 = ln_g1;
-G2 = 0;%K
-H2 = 0; %external magnetic field
 
+ln_g2 = 83.9/8.31; 
 pLS2 = 0; %percentage of interior spins locked in LS
 pHS2 = 0; %percentage of interior spins locked in HS
 boundCond2 = (0); %boundary condition
@@ -72,14 +68,14 @@ J_nom1 = num2str(J1);
 J_ev1 = J1*k_b; %coupling constant/exchange energy in eV
 T_ev1 = T1.*k_b;
 bD_ev1 = big_delta1*k_b;
-G_ev1 = G1*k_b;
+
 
 k1 = J_ev1./(k_b.*T1); % dimensionless inverse temperature
 
 big_delta1 = (k_b*big_delta1)/abs(J_ev1);
 T1 = (k_b.*T1)./abs(J_ev1);
 J1 = J_ev1/abs(J_ev1);
-G1 = G_ev1/abs(J_ev1);
+
 T_inv1 = (abs(J_ev1).*T1)./k_b;
 
 bD_nom2 = num2str(big_delta2);
@@ -88,14 +84,12 @@ J_nom2 = num2str(J2);
 J_ev2 = J2*k_b; %coupling constant/exchange energy in eV
 T_ev2 = T2.*k_b;
 bD_ev2 = big_delta2*k_b;
-G_ev2 = G2*k_b;
 
 k2 = J_ev2./(k_b.*T2); % dimensionless inverse temperature
 
 big_delta2 = (k_b*big_delta2)/abs(J_ev2);
 T2 = (k_b.*T2)./abs(J_ev2);
 J2 = J_ev2/abs(J_ev2);
-G2 = G_ev2/abs(J_ev2);
 T_inv2 = (abs(J_ev2).*T2)./k_b;
 
 % naming system for the files and folders holding data from repeated trials
