@@ -32,13 +32,16 @@ function [spins, E, nHS] = equilibrateSpins_H(...
     E = zeros(time, 1);
     %B = zeros(time, 1);
     nHS = zeros(time, 1);
-    N = max(size(spins));
+    [M, N] = (size(spins));
     
     %% some optimization
     longRange = (big_delta/2 - T*ln_g/2);
     
+    f = waitbar(0, 'Starting');
+    
+    
     for idx = 1:time% how many times to let the system evolve
-        for row = 2:N-1
+        for row = 2:M-1
             for col = 2:N-1
                 i = row;
                 j = col;
@@ -63,8 +66,10 @@ function [spins, E, nHS] = equilibrateSpins_H(...
                         %pick spin and flip right away
                         spins(i, j) = -1*spins(i,j);
                         
-                        sum_nn = (spins((i-1),j) + spins((i+1),j) +...
-                            spins(i,(j-1)) + spins(i,(j+1)));
+                        %sum_nn = (spins((i-1),j) + spins((i+1),j) +...
+                        %    spins(i,(j-1)) + spins(i,(j+1)));
+                        
+                        sum_nn = sumNNN(spins, i, j);
                         
                         %spin_avg = mean(mean(spins));
                         spin_avg = 1;
@@ -72,7 +77,8 @@ function [spins, E, nHS] = equilibrateSpins_H(...
                         
                         %then do change in energy with correct sign
                         %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-                        dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2 - G*spin_avg));
+                        %dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2 - G*spin_avg));
+                        dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2));
                         
                         %E1 = spins(i,j)*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*spins(i,j);
                         %E2 = (-1*spins(i,j))*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*(-1*spins(i,j));
@@ -112,7 +118,12 @@ function [spins, E, nHS] = equilibrateSpins_H(...
         
         %E(idx, 1) = -J*Snn;
         %B(idx, 1) = mu*sum_Si;
-        nHS(idx, 1) = n_HSfrac(spins);
+        
+        %Collapse lattice
+        
+        reducedSpins = reduceLattice(spins, 9);
+        
+        nHS(idx, 1) = n_HSfrac(reducedSpins);
         
         %plot(nHS)
         %pause(0.05);
@@ -135,11 +146,14 @@ function [spins, E, nHS] = equilibrateSpins_H(...
     end
     
         %}
-        
+        waitbar(idx/time, f, sprintf('Progress: %d %%', floor(idx/time*100)));
+        pause(0.1);
     end
+    close(f)
     E = 0;
     %E = mean(E);
     %B = (mean(B)./(N*N));
-    nHS = mean(nHS);
+    %nHS = mean(nHS);
     
 end
+
