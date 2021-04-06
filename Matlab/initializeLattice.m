@@ -1,5 +1,5 @@
 
-function [spins, locked] = initializeLattice(N, b, pLS, pHS)
+function [spins, locked] = initializeLattice(N, M, b, pLS, pHS)
 %{
 
 %initializeLattice.m
@@ -11,12 +11,12 @@ lock: [1, -1]
 p: probability with which spin is locked
 
 %}
-spins = rand(N - 2); %decide how many ones there are
+spins = rand(N - 2, M - 2); %decide how many ones there are
 pt = 1;
 locked(pt, :) = [0 0];
 
 for idx = 1:N-2
-    for jdx = 1:N-2
+    for jdx = 1:M-2
         if (spins(idx, jdx) > 0.5)
             spins(idx, jdx) = 1;
             if rand < 2*pHS
