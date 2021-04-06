@@ -1,0 +1,23 @@
+for temp = 1:length(k2)
+    %copy spins for later comparison
+    spins_last = spins;
+    
+    %let state reach equilibrium
+    X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv2(temp));
+    disp(X)
+    [spins, ~, ~] = equilibrateSpins_H(...
+        evo, spins, k2(temp), T2(temp), mu, H2, J2,...
+        big_delta2, ln_g2, G2, listLS,...
+        frameRate, dir_name, saveIntResults);
+    
+    %take data
+    fprintf("Taking Data\n")
+    [spins, E(p, temp, numSpins), n_HS2(p, temp, numSpins)] = ...
+        equilibrateSpins_H(...
+        dataPts, spins, k2(temp), T2(temp), mu, H2, J2, ...
+        big_delta2, ln_g2, G2, listLS, ...
+        frameRate, dir_name, saveIntResults);
+    
+    close;
+    toc
+end
