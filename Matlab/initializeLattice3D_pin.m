@@ -12,8 +12,8 @@ pHS: probability spin is locked in HS state
 pin: locks the first (pin) layers in some orientation
 %}
 
-%spinD = b.*ones(N);
-spinD = 1*ones(N);
+spinD = b.*ones(N);
+%spinD = 1*ones(N);
 
 pt = 1;
 listLS(pt, :) = [0 0 0];

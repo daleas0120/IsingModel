@@ -19,3 +19,4 @@ mean = sum_Si/((N-2)*(M-2));
 nHS = (1+mean)/2;
 
 end
+
