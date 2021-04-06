@@ -1,5 +1,5 @@
 function [spins, E, nHS] = equilibrateSpins_3D(...
-    time, spins, ~, T, ~, ~, J, big_delta, ln_g, listLS, ...
+    time, spins, ~, T, omega, ~, J, big_delta, ln_g, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
 equilabrateSpins_H.m
@@ -31,10 +31,11 @@ saveIntResults: boolean to control writing of frame samples
     nHS = zeros(time, 1);
     H = zeros(time, 1);
     [N, ~, D] = size(spins);
+    %omega = .01;
     
     %% some optimization
     
-    longRange = (big_delta - T*ln_g)/2;
+    longRange = omega*(big_delta - T*ln_g)/2;
     
     
     
