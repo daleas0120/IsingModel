@@ -186,8 +186,9 @@ for p = 1:numTrials
         end
     end
 end
+%%
 
-save(image_name)
+save(strcat(dir_name,'/', rootName))
 
 %% PLOTTING
 
@@ -253,21 +254,20 @@ else
     grid on
     hold off
     set(gcf, 'InvertHardcopy', 'off')
-    saveas(gcf, strcat(trial_dir,'/',dat_str,'_',...
+    saveas(gcf, strcat(dir_name,'/',dat_str,'_',...
         'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
-    saveas(gcf, strcat(trial_dir,'/',dat_str,'_',...
+    saveas(gcf, strcat(dir_name,'/',dat_str,'_',...
         'delt',bD_nom,'_J',J_nom,'_nHSvsT','.fig'))
     
-    writematrix([T_inv' nHS(1,:)'], strcat(trial_dir,'/',dat_str,'_',...
+    writematrix([T_K' nHSmean], strcat(dir_name,'/',dat_str,'_',...
         'delt',bD_nom,'_J',J_nom,'_nHSvsT','.txt'));
     %%
-    
     %Plot nHS vs steps
     plt_title = 'Spin High Fraction vs Time';
     figure
     hold on
     for idx = 1:31
-        plot(1:evo, nHS(idx, :), '.-c')
+        plot(1:dataPts, nHS(idx, :), '.-c')
     end
     set(gca, 'Color', [34/255, 42/255, 53/255])
     set(gca, 'XColor', [1, 1, 1])
@@ -277,9 +277,29 @@ else
     xlabel("Time (MCIMS Step)")
     title({plt_title}, 'Color', 'white')
     set(gcf, 'InvertHardcopy', 'off')
-    saveas(gcf, strcat(trial_dir,'/',dat_str,'timeAvg_',...
+    saveas(gcf, strcat(dir_name,'/',dat_str,'timeAvg_',...
         'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
-    saveas(gcf, strcat(trial_dir,'/',dat_str,'timeAvg_',...
+    saveas(gcf, strcat(dir_name,'/',dat_str,'timeAvg_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.fig'))
+    %%
+    % Plot nHS evolution
+     plt_title = 'Spin High Fraction vs Time';
+    figure
+    hold on
+    for idx = 1:31
+        plot(1:evo, nHS_evo(idx, :), '.-c')
+    end
+    set(gca, 'Color', [34/255, 42/255, 53/255])
+    set(gca, 'XColor', [1, 1, 1])
+    set(gca, 'YColor', [1, 1, 1])
+    grid on
+    ylabel({'n_H_S'},'Interpreter','tex')
+    xlabel("Time (MCIMS Step)")
+    title({plt_title}, 'Color', 'white')
+    set(gcf, 'InvertHardcopy', 'off')
+    saveas(gcf, strcat(dir_name,'/',dat_str,'timeEvo_',...
+        'delt',bD_nom,'_J',J_nom,'_nHSvsT','.png'))
+    saveas(gcf, strcat(dir_name,'/',dat_str,'timeEvo_',...
         'delt',bD_nom,'_J',J_nom,'_nHSvsT','.fig'))
     
 end
