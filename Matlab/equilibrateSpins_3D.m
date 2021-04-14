@@ -1,5 +1,5 @@
 function [spins, E, nHS] = equilibrateSpins_3D(...
-    time, spins, ~, T, ~, ~, J, big_delta, ln_g, listLS, ...
+    time, spins, ~, T, omega, weights, J, big_delta, ln_g, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
 equilabrateSpins_H.m
@@ -34,7 +34,7 @@ saveIntResults: boolean to control writing of frame samples
     
     %% some optimization
     
-    longRange = (big_delta - T*ln_g)/2;
+    longRange = omega*(big_delta - T*ln_g)/2;
     
     
     
@@ -58,7 +58,7 @@ saveIntResults: boolean to control writing of frame samples
                             %pick spin and flip right away
                             spins(i, j, k) = -1*spins(i, j, k);
                             
-                            sum_nn = sumNN3D(spins, i, j, k);
+                            sum_nn = sumNNN3D(spins, i, j, k, weights);
                             
                             %avg_spin = (sum(spins,'all'))/(N*M*D);
                             
@@ -100,7 +100,7 @@ saveIntResults: boolean to control writing of frame samples
             %axis equal;
             pause(0.05);
             if saveIntResults
-                frame_name = strcat(dir_name,'\frames\',pltTitle,".png");
+                frame_name = strcat(dir_name,'/frames/',pltTitle,".png");
                 saveas(gcf, frame_name)
             end
         
@@ -110,7 +110,7 @@ saveIntResults: boolean to control writing of frame samples
     
     %E = mean(E);
     E=0;
-    nHS = mean(nHS);
+    %nHS = mean(nHS);
 
     
 end

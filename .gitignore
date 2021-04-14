@@ -132,3 +132,4 @@ dmypy.json
 *.asv
 *.mat
 MBP_results/
+*3D/

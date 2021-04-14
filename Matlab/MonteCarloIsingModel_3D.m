@@ -54,10 +54,10 @@ lock = (-1); %Locked in LS or HS
 boundCond = (-1); %boundary condition
 
 %%
-evo = 1e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1e2; %number of MC steps to evaluate the system
+evo = 1e1; %number of MC steps to let the system burn in; this is discarded
+dataPts = 1e1; %number of MC steps to evaluate the system
 frameRate = 250e7+1; % provides a modulus to save snapshot of system
-numTrials = 2; %number of times to repeat the experiment
+numTrials = 1; %number of times to repeat the experiment
 
 % naming system for the files and folders holding data from repeated trials
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
@@ -78,8 +78,8 @@ B = zeros(1, length(k));
 n_HS = zeros(1, length(k));
 
 %L = [4, 7, 10, 40];
-L = [80];
-D = 10;
+L = [52];
+D = 5;
 
 %L = [5];
 %D = 5;

@@ -1,14 +1,14 @@
 %%
 tic
 %clear;
-bd = 1700;
-L = [82];
+bd = 2350;
+L = [52];
 
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
 %% Simulation Parameters
-J1 = 1;%
+J1 = 40;%
 T1 = [100:10:400];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
@@ -19,6 +19,7 @@ H1 = 0; %external magnetic field
 pLS1 = 0; %percentage of interior spins locked in LS
 pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
+omega = 0.07;
 
 bD_nom1 = num2str(big_delta1);
 J_nom1 = num2str(J1);
@@ -76,7 +77,7 @@ for p = 1:numTrials
         mkdir(trial_dir)
     else
         % no group directory required
-        trial_dir = '..\..';
+        trial_dir = '../..';
     end
     
     %%
@@ -90,7 +91,7 @@ for p = 1:numTrials
             t = datetime('now');
             t.Format = "yyMMdd";
             dat_str = string(t);
-            dir_name = strcat(trial_dir,'\',dat_str,p_name{p},'_',num2str(N),'spins');
+            dir_name = strcat(trial_dir,'/',dat_str,p_name{p},'_',num2str(N),'spins');
             mkdir(dir_name)
             mkdir(dir_name,'frames')
         else
@@ -118,15 +119,15 @@ for p = 1:numTrials
             X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv1(temp));
             disp(X)
             [spins, ~, ~] = equilibrateSpins_H(...
-                evo, spins, k1(temp), T1(temp), mu, H1, J1,...
+                evo, spins, k1(temp), T1(temp), omega, H1, J1,...
                 big_delta1, ln_g1, G1, listLS,...
                 frameRate, dir_name, saveIntResults);
             
             %take data
-            fprintf("Taking Data\n")
+            fprintf("Taking Data/n")
             [spins, E(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
                 equilibrateSpins_H(...
-                dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
+                dataPts, spins, k1(temp), T1(temp), omega, H1, J1, ...
                 big_delta1, ln_g1, G1, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
@@ -139,7 +140,6 @@ end
 %% PLOTTING
 
 legArr = {strcat("T Inc, J=",J_nom1, "K, ln(g)=",num2str(ln_g1))};
-%legArr = makeLegend(L);
 set(0,'DefaultTextInterpreter','tex')
 
 if numTrials > 1
@@ -157,10 +157,10 @@ if numTrials > 1
     xlabel("Temperature T (K)")
     ylabel("Energy")
     hold off
-    saveas(gcf, strcat(dir_name,'\',dat_str,'_',num2str(N),'netEvsT','.png'))
+    saveas(gcf, strcat(dir_name,'/',dat_str,'_',num2str(N),'netEvsT','.png'))
     %}
     plt_title = strcat('\rm ',' \Delta=',bD_nom1,'K');
-    named = strcat(trial_dir,'\',dat_str0,'_',...
+    named = strcat(trial_dir,'/',dat_str0,'_',...
         'nHSvsT','_Jinc',J_nom1,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1));
     
     figure
@@ -183,13 +183,14 @@ else
     n_HS1 = squeeze(n_HS1);
     
     
-    nom = strcat(trial_dir,'\',dat_str0,'_',...
+    nom = strcat(trial_dir,'/',dat_str0,'_',...
         'nHSvsT','_J',J_nom1,'K_D',bD_nom1,'K_pLS',num2str(pLS1),...
         '_pHS',num2str(pHS1),'_L',num2str(L));
     
-    named = strcat(trial_dir,'\',dat_str0,'_',...
+    named = strcat(trial_dir,'/',dat_str0,'_',...
         'nHSvsT','_Jinc',J_nom1,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1));
     
+    %%
     
     %figure
     %plot(T, E)
@@ -206,13 +207,15 @@ else
     legend(legArr,'Location','southeast')
     hold off
     
-    
     saveas(gcf, strcat(named, '.png'))
+    
     T_out = [T_inv1];
     nHS_out = [n_HS1];
     
     writematrix([T_out; nHS_out]',strcat(named, '.txt'));
     save(strcat(named, '.mat'));
+    
+    
 end
 
 

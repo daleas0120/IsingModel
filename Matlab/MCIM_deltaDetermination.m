@@ -35,9 +35,9 @@ J = J_ev/J_ev;
 T_inv = (J_ev.*T)./k_b;
 
 %%
-evo = 1e3; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1e3; %number of MC steps to evaluate the system
-numTrials = 3; %number of times to repeat the experiment
+evo = 1e1; %number of MC steps to let the system burn in; this is discarded
+dataPts = 1e1; %number of MC steps to evaluate the system
+numTrials = 1; %number of times to repeat the experiment
 
 frameRate = 1e7 + 1; % provides a modulus to save snapshot of system
 % naming system for the files and folders holding data from repeated trials
@@ -78,7 +78,7 @@ for p = 1:numTrials
     
     for e = 1:length(L)% square root of number of spins
         
-        N = L(numSpins);
+        N = L(1);
         
         %results folder for this particular data run
         if saveIntResults
