@@ -12,6 +12,7 @@ L = [82];
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 
+
 %% Way UP (LS to HS)
 J1 = 170;%
 T1 = [300:5:400];%K
@@ -64,6 +65,7 @@ T_ev2 = T2.*k_b;
 bD_ev2 = big_delta2*k_b;
 G_ev2 = G2*k_b;
 
+
 k2 = J_ev2./(k_b.*T2); % dimensionless inverse temperature
 
 % DIMENSIONLESS UNITS
@@ -94,11 +96,13 @@ E = zeros(1, length(k1));
 Snn = zeros(1, length(k1));
 
 %Magnetism output variables
+
 B = zeros(1, length(k1));
 
 %Spin fraction output variables
 n_HS1 = zeros(1, length(k1));
 n_HS2 = zeros(1, length(k2));
+
 
 
 %%
@@ -117,6 +121,7 @@ for p = 1:numTrials
         trial_dir = '..\..';
     end
     
+
     %%
     
     for numSpins = 1:length(L)% square root of number of spins
@@ -270,7 +275,7 @@ else
     axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
     hold off
-    
+   
     
     saveas(gcf, strcat(named, '.png'))
     T_out = [T_inv1 T_inv2];
@@ -281,7 +286,6 @@ else
 end
 
 
-
 function legArr = makeLegend(L)
 %returns a legend given an array of lattice sizes
 legArr = cell(max(size(L)),1);
@@ -289,3 +293,4 @@ for idx = 1:max(size(L))
     legArr{idx} = strcat(num2str(L(idx)),'x',num2str(L(idx)),' spins');
 end
 end
+

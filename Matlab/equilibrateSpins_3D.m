@@ -26,7 +26,7 @@ saveIntResults: boolean to control writing of frame samples
     %}
     
     set(0,'DefaultTextInterpreter','none')
-    
+    %omega = 0.001;
     E = zeros(time, 1);
     nHS = zeros(time, 1);
     H = zeros(time, 1);

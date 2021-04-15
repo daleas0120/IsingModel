@@ -145,7 +145,6 @@ if (m*n*p) > 50000
     markerSize = 15;
 else
     markerSize = 30;
-end
 
 % plot the items
 scatter3(hs_x, hs_y, hs_z, markerSize, color10)

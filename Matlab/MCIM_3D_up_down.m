@@ -13,10 +13,11 @@ T_c = 4.515;
 
 %% SIMULATION PARAMETERS
 
-evo = 50e0; %number of MC steps to let the system burn in; this is discarded
-dataPts = 50e0; %number of MC steps to evaluate the system
+evo = 200e0; %number of MC steps to let the system burn in; this is discarded
+dataPts = 200e0; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
-frameRate = 1001; % provides a modulus to save snapshot of system
+frameRate = 1000; % provides a modulus to save snapsh ot of system
+
 saveIntResults = false;% save intermediate results:
 
 %% LATTICE PARAMETERS
@@ -24,14 +25,20 @@ boundCond = (0); %boundary condition
 %L = [4, 7, 10, 40];
 L = [37];
 D = 37;
+omega = 0.1;
 
 %% MOLECULE PARAMETERS
 bd = 1550;
 
 %% Way UP (LS to HS)
-J1 = 20;%
+
+%J1 = 20;%
 %T1 = 2200;
-T1 = [100:2:200];%K
+%T1 = [100:2:200];%K
+
+J1 = 100;%
+%T1 = 2200;
+T1 = [250:10:750];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
 %ln_g1 = 67.5/8.31;
@@ -46,6 +53,7 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
+
 J2 = 20;%
 %T2 = 0;
 T2 = [200:-2:100];%K
@@ -53,6 +61,7 @@ big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
 %ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
 %ln_g2 = 5.8002;
+
 ln_g2 = ln_g1;
 G2 = 0;%K
 H2 = 0; %external magnetic field
@@ -125,7 +134,7 @@ for p = 1:numTrials
     if numTrials>1 || ~saveIntResults
         % save all trials in a single directory at highest level
         t = datetime('now');
-        t.Format = "yyMMdd";
+        t.Format = "yyMMddHHmm";
         tryName = num2str(numTrials);
         dat_str0 = string(t);
         trial_dir = strcat('..\..\',dat_str0,'_',tryName,'_3DtrialRuns');
@@ -162,7 +171,7 @@ for p = 1:numTrials
         
         %[spins, listLS] = initializeLattice3D_pin(...
         %    N, D, boundCond, pLS1, pHS1, 2); 
-        
+
         origSpins = spins;
         
         % View initial lattice
@@ -186,7 +195,7 @@ for p = 1:numTrials
             
             [spins, ~, ~] = equilibrateSpins_3D(...
                 evo, spins, k1(temp), T1(temp), mu, H1, J1,...
-                big_delta1, ln_g1, listLS,...
+                omega, big_delta1, ln_g1, listLS,...
                 frameRate, dir_name, saveIntResults);
             
             %take data
@@ -194,7 +203,7 @@ for p = 1:numTrials
             [spins, E(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
                 equilibrateSpins_3D(...
                 dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
-                big_delta1, ln_g1, listLS, ...
+                omega, big_delta1, ln_g1, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             nHS_by_layer1(:,temp) = nHS_layer(spins);
@@ -218,7 +227,8 @@ for p = 1:numTrials
             disp(X)
             
             [spins, ~, ~] = equilibrateSpins_3D(...
-                evo, spins, k2(temp), T2(temp), mu, H2, J2, big_delta2, ln_g2, listLS, ...
+                evo, spins, k2(temp), T2(temp), mu, H2, J2,...
+                omega, big_delta2, ln_g2, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             %take data
@@ -226,7 +236,7 @@ for p = 1:numTrials
             [spins, E(p, temp, numSpins), n_HS2(p, temp, numSpins)] = ...
                 equilibrateSpins_3D(...
                 dataPts, spins, k2(temp), T2(temp), mu, H2, J2, ...
-                big_delta2, ln_g2, listLS, ...
+                omega, big_delta2, ln_g2, listLS, ...
                 frameRate, dir_name, saveIntResults);
             
             nHS_by_layer2(:, temp) = nHS_layer(spins);
@@ -243,6 +253,8 @@ for p = 1:numTrials
         
     end
 end
+
+
 %% PLOTTING
 legArr = {strcat("T Inc, J=",J_nom1, "K, ln(g)=",num2str(ln_g1)),...
     strcat("T Dec, J=", J_nom2, "K, ln(g)=",num2str(ln_g2))};
@@ -304,9 +316,11 @@ else
     plt_title = strcat('\rm \Delta=',bD_nom1,'K \n',...
         num2str(L), 'x', num2str(L),'x', num2str(D), ' Lattice');
     figure
-    plot(T_inv1, n_HS1,'r.-')
+
+    plot(T_inv1, n_HS1,'r.-', 'LineWidth', 1, 'MarkerSize', 10)
     hold on
-    plot(T_inv2, n_HS2,'b.-')
+    plot(T_inv2, n_HS2,'b.-', 'LineWidth', 1, 'MarkerSize', 10)
+
     grid on
     title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
@@ -328,7 +342,11 @@ else
     saveas(gcf, strcat(named, 'BYLAYER_hyst.png'))
     
 end
+%% Save workspace variables
+mat_name = strcat(nom, '.mat');
+save(mat_name);
 
+%%
 function legArr = makeLegend(L,D)
 %returns a legend given an array of lattice sizes
 legArr = cell(max(size(L)),1);

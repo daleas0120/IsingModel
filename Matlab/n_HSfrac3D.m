@@ -2,7 +2,6 @@ function nHS = n_HSfrac3D(spins)
 %{
 nHS.m
 Ashley Dale
-
 Calculates the high-spin fraction for a 3D matrix of spins
 %}
 
@@ -20,6 +19,10 @@ sides = (D-2)*4*(N-1);
 %mean = ((corners + top + bottom + sides + sum_Si))/(N*N*D);
 
 mean = sum_Si/((N-2)*(N-2)*(D-2));
+
+%if mean == 0
+%    mean = -1;
+%end
 
 nHS = (1+mean)/2;
 
