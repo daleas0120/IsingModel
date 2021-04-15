@@ -52,7 +52,7 @@ saveIntResults: boolean to control writing of frame samples
                         
                         if ismember([i j k], listLS, 'rows')
                             continue
-                        else                            
+                        else
                             delta_sig = -1*spins(i, j, k) - spins(i, j, k);
                             
                             %pick spin and flip right away
@@ -94,16 +94,42 @@ saveIntResults: boolean to control writing of frame samples
         
         %%{
         if (mod(idx, frameRate) == 0) && saveIntResults
+            
             pltTitle = strcat(num2str(N),'spins','_T=',num2str(T),'_', num2str(idx));
-            spinVis(spins)
-            title(pltTitle)
-            %axis equal;
+            [~] = spinVis(spins);
+            set(gca,'xticklabel',[])
+            set(gca,'yticklabel',[])
+            set(gca,'zticklabel',[])
+            set(gca,'xtick',[])
+            set(gca,'ytick',[])
+            set(gca,'ztick',[])
+            set(gca, 'Color', [34/255, 42/255, 53/255])
+            set(gcf, 'InvertHardcopy', 'off')
             pause(0.05);
             if saveIntResults
                 frame_name = strcat(dir_name,'/frames/',pltTitle,".png");
                 saveas(gcf, frame_name)
             end
-        
+            close
+            
+            figure
+            squeezeSpins = squeeze3D(spins);
+            [~] = spinVis(squeezeSpins);
+            set(gca,'xticklabel',[])
+            set(gca,'yticklabel',[])
+            set(gca,'zticklabel',[])
+            set(gca,'xtick',[])
+            set(gca,'ytick',[])
+            set(gca,'ztick',[])
+            set(gca, 'Color', [34/255, 42/255, 53/255])
+            set(gcf, 'InvertHardcopy', 'off')
+            pause(0.05);
+            if saveIntResults
+                frame_name = strcat(dir_name,'/frames/squeeze',pltTitle,".png");
+                saveas(gcf, frame_name)
+            end
+            close
+            
         end
         %%}
     end
@@ -111,6 +137,6 @@ saveIntResults: boolean to control writing of frame samples
     %E = mean(E);
     E=0;
     %nHS = mean(nHS);
-
+    
     
 end

@@ -9,10 +9,11 @@ clear;
 bd = 2450;
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
-weights = [1 0 0];
+weights = [1 0.5 0.25];
 
 J_K = 40;%
-T_K = [100:10:400];%K
+%T_K = [100:10:250 252:2:300 310:10:400];%K
+T_K = 249;
 big_delta_K = bd;%K
 ln_g = 81.9/8.31;
 G = 0;%K
@@ -45,8 +46,8 @@ T_inv = (J_ev.*T_K)./k_b;
 
 %%
 evo = 1e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1e2; %number of MC steps to evaluate the system
-frameRate = 1001; % provides a modulus to save snapshot of system
+dataPts = 2.5e1; %number of MC steps to evaluate the system
+frameRate = 1; % provides a modulus to save snapshot of system
 numTrials = 1; %number of times to repeat the experiment
 
 % naming system for the files and folders holding data from repeated trials
@@ -68,8 +69,8 @@ B = zeros(1, length(T_K));
 nHS = zeros(length(T_K), dataPts);
 nHS_evo = zeros(length(T_K), evo);
 
-L = [52];
-D = 12;
+L = [164];
+D = 29;
 
 %%
 set(0,'DefaultFigureColor',[34/255, 42/255, 53/255])
@@ -114,7 +115,7 @@ for p = 1:numTrials
         % View initial lattice
         %%{
         figure
-        spinVis(spins);
+        [~] = spinVis(spins);
         set(gca,'xticklabel',[])
         set(gca,'yticklabel',[])
         set(gca,'zticklabel',[])
@@ -139,8 +140,9 @@ for p = 1:numTrials
             
             tic
             [spins, ~, nHS_evo(temp, :)] = equilibrateSpins_3D(...
-                evo, spins, k(temp), T(temp), omega, weights, J, big_delta, ln_g, listLS, ...
-                frameRate, dir_name, 'false');
+                evo, spins, k(temp), T(temp), omega, weights, J, ...
+                big_delta, ln_g, listLS, ...
+                frameRate, dir_name, saveIntResults);
             
             
             %take data
@@ -149,7 +151,7 @@ for p = 1:numTrials
                 equilibrateSpins_3D(...
                 dataPts, spins, k(temp), T(temp), omega, weights, J, ...
                 big_delta, ln_g, listLS, ...
-                frameRate, dir_name, saveIntResults);
+                frameRate, dir_name, 'false');
             
             close;
             %%{
@@ -266,7 +268,8 @@ else
     plt_title = 'Spin High Fraction vs Time';
     figure
     hold on
-    for idx = 1:31
+   
+    for idx = 1:length(T)
         plot(1:dataPts, nHS(idx, :), '.-c')
     end
     set(gca, 'Color', [34/255, 42/255, 53/255])
@@ -286,7 +289,7 @@ else
      plt_title = 'Spin High Fraction vs Time';
     figure
     hold on
-    for idx = 1:31
+    for idx = 1:length(T)
         plot(1:evo, nHS_evo(idx, :), '.-c')
     end
     set(gca, 'Color', [34/255, 42/255, 53/255])
