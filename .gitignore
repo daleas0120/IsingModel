@@ -131,3 +131,6 @@ dmypy.json
 # Matlab
 *.asv
 *.mat
+MBP_results/
+*3D/
+.DS_Store

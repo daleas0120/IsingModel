@@ -4,7 +4,7 @@ function [spinD, listLS] = initializeLattice3D_pin(N,D,b,pLS,pHS,pin)
 %Ashley Dale
 %creates a randomly initialized NxN lattice
 
-N: number of edge spins
+N: number of spins along an edge
 D: number of stacked layers
 b: [1, 0 -1]; lock edge spins into HS, open boundary, or LS
 pLS: probability spin is locked in LS state
@@ -12,8 +12,8 @@ pHS: probability spin is locked in HS state
 pin: locks the first (pin) layers in some orientation
 %}
 
-%spinD = b.*ones(N);
-spinD = 1*ones(N);
+spinD = b.*ones(N);
+%spinD = 1*ones(N);
 
 pt = 1;
 listLS(pt, :) = [0 0 0];

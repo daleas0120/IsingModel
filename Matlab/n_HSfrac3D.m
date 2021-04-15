@@ -2,9 +2,7 @@ function nHS = n_HSfrac3D(spins)
 %{
 nHS.m
 Ashley Dale
-
-Calculates the high-spin fraction for a 3D matrix of spins with the border
-spins locked in high spin
+Calculates the high-spin fraction for a 3D matrix of spins
 %}
 
 [N, ~, D] = size(spins);

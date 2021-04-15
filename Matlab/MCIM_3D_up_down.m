@@ -9,6 +9,7 @@ clear;
 
 k_b = 8.617333262*10^-5;%eV/K 
 mu = 1; %atomic magnetic moment
+T_c = 4.515;
 
 %% SIMULATION PARAMETERS
 
@@ -16,6 +17,7 @@ evo = 200e0; %number of MC steps to let the system burn in; this is discarded
 dataPts = 200e0; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 1000; % provides a modulus to save snapsh ot of system
+
 saveIntResults = false;% save intermediate results:
 
 %% LATTICE PARAMETERS
@@ -26,15 +28,23 @@ D = 37;
 omega = 0.1;
 
 %% MOLECULE PARAMETERS
-bd = 1325;
+bd = 1550;
 
 %% Way UP (LS to HS)
+
+%J1 = 20;%
+%T1 = 2200;
+%T1 = [100:2:200];%K
+
 J1 = 100;%
 %T1 = 2200;
 T1 = [250:10:750];%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
-ln_g1 = 67.5/8.31;
+%ln_g1 = 67.5/8.31;
+%ln_g1 = 48.2/8.31;
+ln_g1 = 81.9/8.31;
+
 G1 = 0;%K
 H1 = 0; %external magnetic field
 
@@ -43,12 +53,15 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 100;%
+
+J2 = 20;%
 %T2 = 0;
-T2 = [750:-10:250];%K
+T2 = [200:-2:100];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
-%ln_g2 = 75/8.31; %ratio of degeneracy HS to LS
+%ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
+%ln_g2 = 5.8002;
+
 ln_g2 = ln_g1;
 G2 = 0;%K
 H2 = 0; %external magnetic field
@@ -103,7 +116,8 @@ E = zeros(1, length(k1));
 Snn = zeros(1, length(k1));
 
 %Magnetism output variables
-B = zeros(1, length(k1));
+H1 = zeros(1, length(k1));
+H2 = zeros(1, length(k2));
 %%
 %Spin fraction output variables
 n_HS1 = zeros(1, length(k1));
@@ -156,8 +170,8 @@ for p = 1:numTrials
             N, D, boundCond, pLS1, pHS1); %randomly initializes 3D lattice
         
         %[spins, listLS] = initializeLattice3D_pin(...
-         %   N, D, boundCond, pLS1, pHS1, 2); 
-        
+        %    N, D, boundCond, pLS1, pHS1, 2); 
+
         origSpins = spins;
         
         % View initial lattice
@@ -193,6 +207,7 @@ for p = 1:numTrials
                 frameRate, dir_name, saveIntResults);
             
             nHS_by_layer1(:,temp) = nHS_layer(spins);
+            H1(1, temp) = magnetism(spins(2:(L-1), 2:(L-1), 2:(D-1)));
             
             %close;
             %spinVis(spins)
@@ -225,6 +240,8 @@ for p = 1:numTrials
                 frameRate, dir_name, saveIntResults);
             
             nHS_by_layer2(:, temp) = nHS_layer(spins);
+            
+            H2(1, temp) = magnetism(spins(2:(L-1), 2:(L-1), 2:(D-1)));
             
             %spinVis(spins)
             %axis equal
@@ -296,11 +313,14 @@ else
     %figure
     %plot(T, E)
     %title("E")
-    plt_title = strcat('\rm \Delta=',bD_nom1,'K');
+    plt_title = strcat('\rm \Delta=',bD_nom1,'K \n',...
+        num2str(L), 'x', num2str(L),'x', num2str(D), ' Lattice');
     figure
+
     plot(T_inv1, n_HS1,'r.-', 'LineWidth', 1, 'MarkerSize', 10)
     hold on
     plot(T_inv2, n_HS2,'b.-', 'LineWidth', 1, 'MarkerSize', 10)
+
     grid on
     title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
