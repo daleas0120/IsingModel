@@ -36,10 +36,7 @@ saveIntResults: boolean to control writing of frame samples
     
     longRange = omega*(big_delta - T*ln_g)/2;
     
-    
-    
     %%
-    
     
     for idx = 1:time% how many times to let the system evolve
         if N > 2
@@ -50,23 +47,19 @@ saveIntResults: boolean to control writing of frame samples
                         j = yAxis;
                         k = zAxis;
                         
-                        if ismember([i j k], listLS, 'rows')
+                        tmp = find(listLS(:, 1) == i & listLS(:, 2) == j & listLS(:, 3)==k, 1);
+                        bool = isempty(tmp);
+                        
+                        if ~bool
                             continue
                         else
+                        
                             delta_sig = -1*spins(i, j, k) - spins(i, j, k);
                             
-                            %pick spin and flip right away
                             spins(i, j, k) = -1*spins(i, j, k);
                             
                             sum_nn = sumNNN3D(spins, i, j, k, weights);
-                            
-                            %avg_spin = (sum(spins,'all'))/(N*M*D);
-                            
-                            %then do change in energy with correct sign
-                            %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-                            %dE = delta_sig*(-1*J*sum_nn +...
-                            %    (big_delta/2 - T*ln_g/2));
-                            
+                        
                             dE = delta_sig*(-1*J*sum_nn + longRange);
                             
                             p = exp(-1*dE/T);
@@ -76,24 +69,19 @@ saveIntResults: boolean to control writing of frame samples
                             else
                                 spins(i,j,k) = -1*spins(i,j,k);
                             end
-                            
-                            %then check with random number; if state is acceptable,
-                            %keep and move on; if state is not acceptable then flip
-                            %sign back and try a different spin
+
                         end
                     end
                 end
             end
         end
         %%
-        %Snn = nearestN3D(spins);
-        
-        %E(idx, 1) = -J*Snn;
+
         nHS(idx, 1) = n_HSfrac3D(spins);
         H(idx, 1) = magnetism(spins(2:N-1, 2:N-1, 2:D-1));
         
         %%{
-        if (mod(idx, frameRate) == 0) && saveIntResults
+        if (mod(idx, frameRate) == 0) & saveIntResults
             
             pltTitle = strcat(num2str(N),'spins','_T=',num2str(T),'_', num2str(idx));
             [~] = spinVis(spins);
@@ -107,8 +95,9 @@ saveIntResults: boolean to control writing of frame samples
             set(gcf, 'InvertHardcopy', 'off')
             pause(0.05);
             if saveIntResults
-                frame_name = strcat(dir_name,'/frames/',pltTitle,".png");
-                saveas(gcf, frame_name)
+                frame_name = strcat(dir_name,'/frames/',pltTitle);
+                saveas(gcf, strcat(frame_name,".png"));
+                saveas(gcf, strcat(frame_name,".fig"));
             end
             close
             
@@ -125,8 +114,9 @@ saveIntResults: boolean to control writing of frame samples
             set(gcf, 'InvertHardcopy', 'off')
             pause(0.05);
             if saveIntResults
-                frame_name = strcat(dir_name,'/frames/squeeze',pltTitle,".png");
-                saveas(gcf, frame_name)
+                frame_name = strcat(dir_name,'/frames/squeeze',pltTitle);
+                saveas(gcf, strcat(frame_name,".png"));
+                saveas(gcf, strcat(frame_name,".fig"));
             end
             close
             

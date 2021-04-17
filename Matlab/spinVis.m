@@ -145,16 +145,16 @@ if (m*n*p) > 50000
     markerSize = 15;
 else
     markerSize = 30;
-
+end
 % plot the items
 scatter3(hs_x, hs_y, hs_z, markerSize, color10)
+scatter3(bc_x, bc_y, bc_z, markerSize, color5)
 hold on
+scatter3(hs_x, hs_y, hs_z, markerSize, color10)
 scatter3(hs9_x, hs9_y, hs9_z, markerSize, color9)
 scatter3(hs8_x, hs8_y, hs8_z, markerSize, color8)
 scatter3(hs7_x, hs7_y, hs7_z, markerSize, color7)
 scatter3(hs6_x, hs6_y, hs6_z, markerSize, color6)
-
-scatter3(bc_x, bc_y, bc_z, markerSize, color5)
 
 scatter3(ls4_x, ls4_y, ls4_z, markerSize, color4)
 scatter3(ls3_x, ls3_y, ls3_z, markerSize, color3)

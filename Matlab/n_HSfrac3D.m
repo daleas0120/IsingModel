@@ -5,24 +5,13 @@ Ashley Dale
 Calculates the high-spin fraction for a 3D matrix of spins
 %}
 
-[N, ~, D] = size(spins);
+[N, M, D] = size(spins);
 
-sum_Si = sum(spins(2:N-1, 2:N-1, 2:D-1), 'all');
-%{
-edge = (N-2);
-corners = 8;
-top = 4*edge + (N-2)^2; 
-bottom = 4*edge + (N-2)^2; 
-sides = (D-2)*4*(N-1);
-%}
+S = spins(2:N-1, 2:M-1, 2:D-1);
 
-%mean = ((corners + top + bottom + sides + sum_Si))/(N*N*D);
+sum_Si = sum(S, 'all');
 
-mean = sum_Si/((N-2)*(N-2)*(D-2));
-
-%if mean == 0
-%    mean = -1;
-%end
+mean = sum_Si/((N-2)*(M-2)*(D-2));
 
 nHS = (1+mean)/2;
 

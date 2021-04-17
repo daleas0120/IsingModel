@@ -1,4 +1,4 @@
-function [spinD, listLS] = initializeLattice3D_pin(N,D,b,pLS,pHS,pin)
+function [spinD, listLS] = initializeLattice3D_pin(N,D,b,pLS,pHS,pin,val)
 %{
 %initializeLattice3D.m
 %Ashley Dale
@@ -20,7 +20,7 @@ listLS(pt, :) = [0 0 0];
 
 %creates additional pinned layers
 for kdx = 1:pin
-    spins = ones(N-2);
+    spins = val.*ones(N-2);
     spins = padarray(spins, [1 1], b, 'both');
     spinD = cat(3, spinD, spins);
     
