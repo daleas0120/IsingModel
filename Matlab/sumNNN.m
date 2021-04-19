@@ -3,7 +3,7 @@ function S = sumNNN(spins, i, j)
 
 %}
 
-[m n] = size(spins);
+[m, n] = size(spins);
 
 sNN_wt = 1;
 sNNN_wt = 0.75;
