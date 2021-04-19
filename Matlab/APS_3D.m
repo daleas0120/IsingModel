@@ -10,9 +10,13 @@ bd = 2450;
 k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
 weights = [1 0.5 0.3333];
+L = [164];
+D = 29;
+numPinnedLayers=0;
+pinningVal = 1;
 
 J_K = 40;%
-%T_K = [100:10:250 252:2:300 310:10:400];%K
+%T_K = [100:10:250 255:5:300 310:10:400];%K
 T_K = 249;
 big_delta_K = bd;%K
 ln_g = 81.9/8.31;
@@ -68,11 +72,6 @@ B = zeros(1, length(T_K));
 %Spin fraction output variables
 nHS = zeros(length(T_K), dataPts);
 nHS_evo = zeros(length(T_K), evo);
-
-L = [164];
-D = 29;
-numPinnedLayers=0;
-pinningVal = 1;
 
 APSslideColor = [34/255, 42/255, 53/255];
 %%
@@ -252,7 +251,7 @@ else
     saveas(gcf, strcat(imgHSvTemp,'.png'))
     saveas(gcf, strcat(imgHSvTemp,'.fig'))
     
-    writematrix([T_K(:)' nHSmean(:)], strcat(imgHSvTemp,'.txt'));
+    writematrix([T_K' nHSmean], strcat(imgHSvTemp,'.txt'));
     
     %%
     %Plot nHS vs steps
