@@ -1,5 +1,5 @@
 function [spins, E, nHS] = equilibrateSpins_H(...
-    time, spins, ~, T, omega, ~, J, big_delta, ln_g, G, listLS, ...
+    time, spins, ~, T, omega, weights, J, big_delta, ln_g, G, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
 %equilabrateSpins_H.m
@@ -34,19 +34,31 @@ function [spins, E, nHS] = equilibrateSpins_H(...
     nHS = zeros(time, 1);
     N = max(size(spins));
     
+    b = 1;
+    f = waitbar(0, '1', 'Name', 'equilibrateSpins_H.m', ...
+        'CreateCancelBtn', 'setappdata(gcbf, ''canceling'',1)');
+    
+    setappdata(f, 'canceling', 0)
+    
     %% some optimization
     longRange = omega*(big_delta/2 - T*ln_g/2);
     
     for idx = 1:time% how many times to let the system evolve
+        waitbar(idx/time, f)
         for row = 2:N-1
             for col = 2:N-1
+                
+                if getappdata(f, 'canceling')
+                    break
+                end
+                
                 i = row;
                 j = col;
                 
                 if N > 2
                     
-                    
-                    if ismember([i j], listLS, 'rows')
+                    %if ismember([i j], listLS, 'rows')
+                    if b == 0
                         continue
                     else
                         %tmp1 = countLS(spins(2:N-1, 2:N-1));
@@ -63,8 +75,10 @@ function [spins, E, nHS] = equilibrateSpins_H(...
                         %___pick spin and flip right away___%
                         spins(i, j) = -1*spins(i,j);
                         
-                        sum_nn = (spins((i-1),j) + spins((i+1),j) +...
-                            spins(i,(j-1)) + spins(i,(j+1)));
+                        %sum_nn = (spins((i-1),j) + spins((i+1),j) +...
+                        %    spins(i,(j-1)) + spins(i,(j+1)));
+                        
+                        sum_nn = sumNNN(spins, i, j);
                         
                         %spin_avg = mean(mean(spins));
                         %spin_avg = 1;
@@ -120,7 +134,7 @@ function [spins, E, nHS] = equilibrateSpins_H(...
         
         
         
-        %{
+        %%{
     
     if mod(idx, frameRate) == 0
         pltTitle = strcat(num2str(N),'spins','_',num2str(T),'K_', num2str(idx));
@@ -132,15 +146,20 @@ function [spins, E, nHS] = equilibrateSpins_H(...
         if saveIntResults
             frame_name = strcat(dir_name,'\frames\',pltTitle,".png");
             saveas(gcf, frame_name)
+            
+            tmp1 = uint8(255.*((spins - min(spins(:)))./max(spins(:))));
+            imwrite(tmp1, strcat(dir_name, '\frames\',pltTitle,'img.png'));
+            
         end
     end
     
         %}
         
     end
+    delete(f)
     E = 0;
     %E = mean(E);
     %B = (mean(B)./(N*N));
-    nHS = mean(nHS);
+    %nHS = mean(nHS);
     
 end

@@ -6,8 +6,8 @@ function S = sumNNN(spins, i, j)
 [m, n] = size(spins);
 
 sNN_wt = 1;
-sNNN_wt = 0.75;
-sNNNN_wt = 0.25;
+sNNN_wt = 0;
+sNNNN_wt = 0;
 
 sNN = spins(i, j+1)+...
     spins(i+1, j)+...

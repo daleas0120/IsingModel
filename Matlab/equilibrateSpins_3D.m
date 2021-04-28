@@ -123,10 +123,5 @@ saveIntResults: boolean to control writing of frame samples
         end
         %%}
     end
-    
-    %E = mean(E);
-    E=0;
-    %nHS = mean(nHS);
-    
-    
+    E = 0;
 end

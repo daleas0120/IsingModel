@@ -1,4 +1,5 @@
-function [spinD, listLS] = initializeLattice3D_pin(N,D,b,pLS,pHS,pin,val)
+function [spinD, listLS] = initializeLattice3D_substrate(...
+    N,D,b,pLS,pHS,substrate)
 %{
 %initializeLattice3D.m
 %Ashley Dale
@@ -12,17 +13,11 @@ pHS: probability spin is locked in HS state
 pin: locks the first (pin) layers in some orientation
 %}
 
-spinD = b.*ones(N);
+spinD = b.*ones(N); %bottom layer
+listLS(1, :) = [0 0 0];
 
-pt = 1;
-listLS(pt, :) = [0 0 0];
-
-%creates additional pinned layers
-for kdx = 1:pin
-    spins = val.*ones(N-2);
-    spins = padarray(spins, [1 1], b, 'both');
-    spinD = cat(3, spinD, spins);
-    
+for kdx = 1:2
+    spinD = cat(3, spinD, substrate);
     [cx, cy, cz] = ndgrid(2:N-1, 2:N-1, kdx+1);
     X = cx(:);
     Y = cy(:);
@@ -31,12 +26,14 @@ for kdx = 1:pin
     pts = [X Y Z];
     
     listLS = [listLS; pts];
-    
-    %pt = pt + 1;
-    
+       
 end
 
-for kdx = (pin+1):(D - 2)
+
+
+%creates additional pinned layers
+
+for kdx = 3:(D - 2)
     
     spins = rand(N-2); %decide how many ones there are
     

@@ -8,18 +8,17 @@ tic
 clear;
 bd = 2450;
 k_b = 8.617333262*10^-5;%eV/K
-mu = 1; %atomic magnetic moment
-weights = [1 0.5 0.3333];
-L = [164];
-D = 29;
-numPinnedLayers=0;
-pinningVal = 1;
+weights = [1 0.7071 0.5];
+L = [302];
+D = 11;
 
-J_K = 40;%
-%T_K = [100:10:250 255:5:300 310:10:400];%K
-T_K = 249;
+substrateImg = 'C:\Users\daleas\Documents\GitHub\IsingModel\Matlab\210428_1trialRuns\210428a__502spins\frames\502spins_1.7437K_5img.png';
+substrateWeight = 0.5;
+
+J_K = 47.5;%
+T_K = 297;
 big_delta_K = bd;%K
-ln_g = 81.9/8.31;
+ln_g = 83.9/8.31;
 G = 0;%K
 
 pLS = 0; %percentage of interior spins locked in LS
@@ -33,9 +32,7 @@ J_nom = num2str(J_K);
 J_ev = J_K*k_b; %coupling constant/exchange energy in eV
 T_ev = T_K.*k_b;
 bD_ev = big_delta_K*k_b;
-
 k = J_ev./(k_b.*T_K); % dimensionless inverse temperature
-
 H = 0; %external magnetic field
 
 %% DIMENSIONLESS UNITS
@@ -53,11 +50,6 @@ dataPts = 2.5e1; %number of MC steps to evaluate the system
 frameRate = 1; % provides a modulus to save snapshot of system
 numTrials = 1; %number of times to repeat the experiment
 
-% naming system for the files and folders holding data from repeated trials
-p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
-    'l_', 'm_', 'n_', 'o_', 'p_', 'q_', 'r_', 's_', 't_', 'u_', 'v_', 'w_', ...
-    'x_', 'y_', 'z_', 'A_', 'B_', 'C_', 'D_'};
-
 % save intermediate results:
 saveIntResults = true;
 
@@ -71,52 +63,108 @@ B = zeros(1, length(T_K));
 %Spin fraction output variables
 nHS = zeros(length(T_K), dataPts);
 nHS_evo = zeros(length(T_K), evo);
-
-APSslideColor = [34/255, 42/255, 53/255];
 %%
-set(0,'DefaultFigureColor',[34/255, 42/255, 53/255])
-for p = 1:numTrials
+%APSslideColor = [34/255, 42/255, 53/255];
+APSslideColor = [1 1 1];
+
+set(0,'DefaultFigureColor',APSslideColor)
+
+t = datetime('now');
+t.Format = "yyMMdd";
+dat_str0 = string(t);
+
+if saveIntResults
+    % save all trials in a single directory at highest level
+    tryName = num2str(numTrials);
+    trial_dir = strcat(dat_str0,'_',tryName,'trialRuns');
+    mkdir(trial_dir)
+else
+    % no group directory required
+    trial_dir = '..';
+end
+%results folder for this particular data run
+if saveIntResults
     t = datetime('now');
-    t.Format = "yyMMdd";
-    dat_str0 = string(t);
+    t.Format = "yyMMddhhmm";
+    dat_str = string(t);
+    dir_name = strcat(trial_dir,'/',dat_str,'_',num2str(L(1)),'spins3D');
+    mkdir(dir_name)
+    mkdir(dir_name,'frames')
+    mkdir(dir_name,'png')
+    mkdir(dir_name,'fig')
+    mkdir(dir_name,'txt')
+else
+    dir_name = "";
+end
+
+%% initialize 3D lattice
+N = L(1);
+
+substrate = imresize(imread(substrateImg), [N, N]);
+substrate = 2.*double(substrate./255) - 1;
+substrate = substrateWeight.*substrate;
+
+[spinsOG, listLS] = initializeLattice3D_substrate(...
+    N, D, boundCond, pLS, pHS, substrate);
+
+% View initial lattice
+%%{
+figure
+spinVis(spinsOG);
+set(gca,'xticklabel',[])
+set(gca,'yticklabel',[])
+set(gca,'zticklabel',[])
+set(gca,'xtick',[])
+set(gca,'ytick',[])
+set(gca,'ztick',[])
+set(gca, 'Color', APSslideColor)
+pause(3)
+close
+%}
+
+figure;
+%%
+spins = spinsOG;
+
+for temp = 1:length(k)
+    %let state reach equilibrium
+    X = sprintf('Cooling %d x %d x %d spins to temp %f ....',...
+        N, N, D, T_K(temp));
+    disp(X)
     
-    if numTrials>1 || saveIntResults
-        % save all trials in a single directory at highest level
-        tryName = num2str(numTrials);
-        trial_dir = strcat(dat_str0,'_',tryName,'trialRuns');
-        mkdir(trial_dir)
-    else
-        % no group directory required
-        trial_dir = '..';
-    end
-    %%
-    for numSpins = 1:length(L)% square root of number of spins
+    tic
+    [spins, ~, nHS_evo(temp, :)] = equilibrateSpins_3D(...
+        evo, spins, k(temp), T(temp), omega, weights, J, ...
+        big_delta, ln_g, listLS, ...
+        frameRate, dir_name, saveIntResults);
+    
+    
+    %take data
+    fprintf("Taking Data\n")
+    [spins, E(p, temp, numSpins), nHS(temp, :)] = ...
+        equilibrateSpins_3D(...
+        dataPts, spins, k(temp), T(temp), omega, weights, J, ...
+        big_delta, ln_g, listLS, ...
+        frameRate, dir_name, 'false');
+    
+    close;
+    %%{
+    rootName = strcat(dat_str, num2str(N),...
+        'spins_k_', num2str(T_K(temp)), 'K');
+    if saveIntResults
         
-        N = L(numSpins);
+        file_name = strcat(dir_name,'/txt/',rootName,'.txt');
+        png_name = strcat(dir_name,'/png/',rootName, '.png');
+        fig_name = strcat(dir_name,'/fig/',rootName, '.fig');
+        %save spin matrix to text file
+        writematrix(spins,file_name);
         
-        %results folder for this particular data run
-        if saveIntResults
-            t = datetime('now');
-            t.Format = "yyMMddhhmm";
-            dat_str = string(t);
-            dir_name = strcat(trial_dir,'/',dat_str,p_name{p},'_',num2str(N),'spins3D');
-            mkdir(dir_name)
-            mkdir(dir_name,'frames')
-            mkdir(dir_name,'png')
-            mkdir(dir_name,'fig')
-            mkdir(dir_name,'txt')
-        else
-            dir_name = "";
-        end
-        
-        %% initialize 3D lattice
-        [spinsOG, listLS] = initializeLattice3D_pin(...
-            N, D, boundCond, pLS, pHS, numPinnedLayers, pinningVal);
-        
-        % View initial lattice
-        %%{
-        figure
-        spinVis(spinsOG);
+        %save final spin
+        f = figure;
+        spinVis(spins);
+        title({strcat(num2str(T_K(temp)), 'K')},...
+            'Interpreter', 'tex',...
+            'Color', 'white');
         set(gca,'xticklabel',[])
         set(gca,'yticklabel',[])
         set(gca,'zticklabel',[])
@@ -124,72 +172,14 @@ for p = 1:numTrials
         set(gca,'ytick',[])
         set(gca,'ztick',[])
         set(gca, 'Color', APSslideColor)
-        pause(3)
+        set(gcf, 'Color', APSslideColor)
+        set(gcf, 'InvertHardcopy', 'off')
+        saveas(gcf, png_name);
+        saveas(gcf, fig_name);
         close
-        %}
-        
-        figure;
-        %%
-        spins = spinsOG;
-        for temp = 1:length(k)
-            %copy spins for later comparison
-            %spins_last = spins;
-            
-            %let state reach equilibrium
-            X = sprintf('Cooling %d x %d x %d spins to temp %f ....',...
-                N, N, D, T_K(temp));
-            disp(X)
-            
-            tic
-            [spins, ~, nHS_evo(temp, :)] = equilibrateSpins_3D(...
-                evo, spins, k(temp), T(temp), omega, weights, J, ...
-                big_delta, ln_g, listLS, ...
-                frameRate, dir_name, saveIntResults);
-            
-            
-            %take data
-            fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), nHS(temp, :)] = ...
-                equilibrateSpins_3D(...
-                dataPts, spins, k(temp), T(temp), omega, weights, J, ...
-                big_delta, ln_g, listLS, ...
-                frameRate, dir_name, 'false');
-            
-            close;
-            %%{
-            rootName = strcat(dat_str, p_name{p}, num2str(N),...
-                'spins_k_', num2str(T_K(temp)), 'K');
-            if saveIntResults
-                
-                file_name = strcat(dir_name,'/txt/',rootName,'.txt');
-                png_name = strcat(dir_name,'/png/',rootName, '.png');
-                fig_name = strcat(dir_name,'/fig/',rootName, '.fig');
-                %save spin matrix to text file
-                writematrix(spins,file_name);
-                
-                %save final spin
-                f = figure;
-                spinVis(spins);
-                title({strcat(num2str(T_K(temp)), 'K')},...
-                    'Interpreter', 'tex',...
-                    'Color', 'white');
-                set(gca,'xticklabel',[])
-                set(gca,'yticklabel',[])
-                set(gca,'zticklabel',[])
-                set(gca,'xtick',[])
-                set(gca,'ytick',[])
-                set(gca,'ztick',[])
-                set(gca, 'Color', APSslideColor)
-                set(gcf, 'Color', APSslideColor)
-                set(gcf, 'InvertHardcopy', 'off')
-                saveas(gcf, png_name);
-                saveas(gcf, fig_name);
-                close
-            end
-            %}
-            toc
-        end
     end
+    %}
+    toc
 end
 %%
 
@@ -238,8 +228,8 @@ else
     %legend(legArr,'Location','southeast')
     axis([-inf inf 0 1.0])
     set(gca, 'Color', APSslideColor)
-    set(gca, 'XColor', [1, 1, 1])
-    set(gca, 'YColor', [1, 1, 1])
+    %set(gca, 'XColor', [0, 0, 0])
+    %set(gca, 'YColor', [0, 0, 0])
     grid on
     hold off
     set(gcf, 'InvertHardcopy', 'off')
@@ -262,8 +252,8 @@ else
         plot(1:dataPts, nHS(idx, :), '.-c')
     end
     set(gca, 'Color', APSslideColor)
-    set(gca, 'XColor', [1, 1, 1])
-    set(gca, 'YColor', [1, 1, 1])
+    %set(gca, 'XColor', [1, 1, 1])
+    %set(gca, 'YColor', [1, 1, 1])
     grid on
     ylabel({'n_H_S'},'Interpreter','tex')
     xlabel("Time (MCIMS Step)")
@@ -287,8 +277,8 @@ else
         plot(1:evo, nHS_evo(idx, :), '.-c')
     end
     set(gca, 'Color', APSslideColor)
-    set(gca, 'XColor', [1, 1, 1])
-    set(gca, 'YColor', [1, 1, 1])
+    %set(gca, 'XColor', [1, 1, 1])
+    %set(gca, 'YColor', [1, 1, 1])
     grid on
     ylabel({'n_H_S'},'Interpreter','tex')
     xlabel("Time (MCIMS Step)")
