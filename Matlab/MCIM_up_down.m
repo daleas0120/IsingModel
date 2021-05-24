@@ -6,15 +6,21 @@
 %%
 tic
 %clear;
-bd = 1940;
-L = [82];
+bd = 3000.5;
+%L = [209, 311];
+%L = [1002, 1002];
+L = [302, 302];
+%weights = [1, 0.5, 0.25];
+weights = [1, 0.7071, 0.5];
+%weights = [1, 0, 0];
 
 %% Way UP (LS to HS)
-J1 = 170;%
-T1 = [300:5:400];%K
+J1 = 48.5;%
+T1 = 297;%K
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
-ln_g1 = 42.75/8.31;
+S1 = 83.9;
+ln_g1 = S1/8.31;
 G1 = 0;%K
 H1 = 0; %external magnetic field
 
@@ -23,8 +29,8 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 125;%
-T2 = [400:-5:300];%K
+J2 = 1;%
+T2 = 170;%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
 ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
@@ -36,12 +42,10 @@ pHS2 = 0; %percentage of interior spins locked in HS
 boundCond2 = (0); %boundary condition
 
 %%
-evo = 50e1; %number of MC steps to let the system burn in; this is discarded
-dataPts = 50e1; %number of MC steps to evaluate the system
-numTrials = 1; %number of times to repeat the experiment
-frameRate = 10; % provides a modulus to save snapshot of system
-
-
+evo = 0; %number of MC steps to let the system burn in; this is discarded
+dataPts = 2000; %number of MC steps to evaluate the system
+numTrials = 9; %number of times to repeat the experiment
+frameRate = 310001; % provides a modulus to save snapshot of system
 
 %% DIMENSIONLESS UNITS (Formatting for program)
 
@@ -86,7 +90,7 @@ p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
     'x_', 'y_', 'z_', 'A_', 'B_', 'C_', 'D_'};
 
 % save intermediate results:
-saveIntResults = true;
+saveIntResults = false;
 
 %Energy output variables
 E = zeros(1, length(k1));
@@ -112,14 +116,15 @@ for p = 1:numTrials
         mkdir(trial_dir)
     else
         % no group directory required
-        trial_dir = '..\..';
+        trial_dir = '';
     end
     
     %%
     
-    for numSpins = 1:length(L) % square root of number of spins
+    for numSpins = 1:(length(L)-1) % square root of number of spins
         
-        N = L(numSpins);
+        N = L(1);
+        M = L(2);
         
         %results folder for this particular data run
         if saveIntResults
@@ -133,8 +138,9 @@ for p = 1:numTrials
             dir_name = "";
         end
         %initialize 2D lattice
-        [spins, listLS] = initializeLattice(N, boundCond1, pLS1, pHS1); %randomly initializes 2D lattice
+        [spins, locked] = initializeLattice(N, M, boundCond1, pLS1, pHS1); %randomly initializes 2D lattice
         
+        %spins = initializeLSlattice(N, M, boundCond1); %initialize lattice in entirely LS state
         origSpins = spins;
         
         % View initial lattice
@@ -154,46 +160,69 @@ for p = 1:numTrials
             X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv1(temp));
             disp(X)
             [spins, ~, ~] = equilibrateSpins_H(...
-                evo, spins, k1(temp), T1(temp), mu, H1, J1,...
-                big_delta1, ln_g1, G1, listLS,...
+                evo, spins, k1(temp), T1(temp), weights, H1, J1,...
+                big_delta1, ln_g1, G1, locked,...
                 frameRate, dir_name, saveIntResults);
             
             %take data
             fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), n_HS1(temp, :)] = ...
+            %[spins, E(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
+            %    equilibrateSpins_H(...
+            %    dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
+            %    big_delta1, ln_g1, G1, listLS, ...
+            %    frameRate, dir_name, saveIntResults);
+            [spins, E(p, temp, numSpins), n_HS1] = ...
                 equilibrateSpins_H(...
-                dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
-                big_delta1, ln_g1, G1, listLS, ...
+                dataPts, spins, k1(temp), T1(temp), weights, H1, J1, ...
+                big_delta1, ln_g1, G1, locked, ...
                 frameRate, dir_name, saveIntResults);
             
             close;
             toc
         end
+        %%
+        
+        figure;
+        subplot(2,2,1)
+        imagesc(spins);
+        axis square
+        title('Binary Lattice')
+        
+        nHS = n_HSfrac(spins)
+        
+        rSpins = reduceLattice(spins, 9);
+        subplot(2,2,2)
+        imagesc(rSpins)
+        axis square
+        colorbar
+        title('Averaged Lattice')
+        
+        subplot(2,2,3)
+        histogram(rSpins)
+        title('Site Value Distribution')
+        
+        subplot(2,2,4)
+        plot(n_HS1)
+        title('nHS vs Time')
+        ylim([0 1])
+        grid on
+        grid minor
+        
+        save(gcf, strcat('grid_', num2str(p), '.png'));
+        
+        imgName = strcat(dat_str0,'_J',J_nom1, 'K_T', num2str(T1(temp)),'K_',...
+            num2str(weights(1)), '_', num2str(weights(2)), '_', num2str(weights(3)),...
+            '_S',num2str(S1));
+        
+        saveSpinsImg(spins, strcat(imgName, num2str(p), '_OG.png'))
+        saveSpinsImg(rSpins, strcat(imgName, num2str(p),  '_squeeze6.png'))
+        saveSpinsImg(imresize(rSpins, [1043 1025]), strcat(imgName, num2str(p), '_squeeze9LG.png'))
+        
+        saveSpinImg(rspins, strcat(imgName, num2str(p),  'v1.png'));
+        saveSpinImg(imresize(rSpins, [1043 1025]), num2str(p),  strcat(imgName, 'v2.png'));
         
         %%
-        for temp = 1:length(k2)
-            %copy spins for later comparison
-            spins_last = spins;
-            
-            %let state reach equilibrium
-            X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv2(temp));
-            disp(X)
-            [spins, ~, ~] = equilibrateSpins_H(...
-                evo, spins, k2(temp), T2(temp), mu, H2, J2,...
-                big_delta2, ln_g2, G2, listLS,...
-                frameRate, dir_name, saveIntResults);
-            
-            %take data
-            fprintf("Taking Data\n")
-            [spins, E(p, temp, numSpins), n_HS2(p, temp, numSpins)] = ...
-                equilibrateSpins_H(...
-                dataPts, spins, k2(temp), T2(temp), mu, H2, J2, ...
-                big_delta2, ln_g2, G2, listLS, ...
-                frameRate, dir_name, saveIntResults);
-            
-            close;
-            toc
-        end
+        %MCIM_2D_coolDown()
     end
 end
 
@@ -224,7 +253,7 @@ if numTrials > 1
     plt_title = strcat('\rm ',' \Delta=',bD_nom1,'K');
     named = strcat(trial_dir,'\',dat_str0,'_',...
         'nHSvsT','_Jinc',J_nom1,'K_Jdec',J_nom2,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1),'_lngdec',num2str(ln_g2));
-
+    
     figure
     plot(T_inv1, mean_nHS,'b*-')
     hold on
@@ -249,9 +278,9 @@ else
         'nHSvsT','_J',J_nom1,'K_D',bD_nom1,'K_pLS',num2str(pLS1),...
         '_pHS',num2str(pHS1),'_L',num2str(L));
     
-        named = strcat(trial_dir,'\',dat_str0,'_',...
+    named = strcat(trial_dir,'\',dat_str0,'_',...
         'nHSvsT','_Jinc',J_nom1,'K_Jdec',J_nom2,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1),'_lngdec',num2str(ln_g2));
-
+    
     
     %figure
     %plot(T, E)

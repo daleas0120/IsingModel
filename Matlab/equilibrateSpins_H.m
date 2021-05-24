@@ -1,5 +1,5 @@
 function [spins, E, nHS] = equilibrateSpins_H(...
-    time, spins, ~, T, omega, weights, J, big_delta, ln_g, G, listLS, ...
+    time, spins, ~, T, weights, ~, J, big_delta, ln_g, G, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
 %equilabrateSpins_H.m
@@ -25,8 +25,13 @@ function [spins, E, nHS] = equilibrateSpins_H(...
 %saveIntResults: boolean to control writing of frame samples
 
     %}
+    f = waitbar(0,'1','Name','equilibrateSpins_H',...
+        'CreateCancelBtn','setappdata(gcbf,''canceling'',Annealing)');
     
-    set(0,'DefaultTextInterpreter','none')
+    setappdata(f, 'canceling', 0);
+    
+    set(0,'DefaultTextInterpreter','none');
+    
     %k_b = 8.617333262*10^-5;%eV/K
     
     E = zeros(time, 1);
@@ -34,31 +39,28 @@ function [spins, E, nHS] = equilibrateSpins_H(...
     nHS = zeros(time, 1);
     N = max(size(spins));
     
-    b = 1;
-    f = waitbar(0, '1', 'Name', 'equilibrateSpins_H.m', ...
-        'CreateCancelBtn', 'setappdata(gcbf, ''canceling'',1)');
-    
-    setappdata(f, 'canceling', 0)
-    
     %% some optimization
-    longRange = omega*(big_delta/2 - T*ln_g/2);
+    longRange = (big_delta/2 - T*ln_g/2);
+    b = 0;
     
     for idx = 1:time% how many times to let the system evolve
+        
+        if getappdata(f, 'canceling')
+            break
+        end
+        
         waitbar(idx/time, f)
+        
         for row = 2:N-1
             for col = 2:N-1
-                
-                if getappdata(f, 'canceling')
-                    break
-                end
-                
                 i = row;
                 j = col;
                 
                 if N > 2
                     
-                    %if ismember([i j], listLS, 'rows')
-                    if b == 0
+                    tmp1 = find(listLS(:, 1) == row & listLS(:, 2) == col);
+                    
+                    if  ~ isempty(tmp1)
                         continue
                     else
                         %tmp1 = countLS(spins(2:N-1, 2:N-1));
@@ -67,35 +69,31 @@ function [spins, E, nHS] = equilibrateSpins_H(...
                         %    print("ERROR")
                         %end
                         
-                        %spinsLast = spins;
+                        spinsLast = spins;
                         %tmp3 = countLS(spins(2:N-1, 2:N-1));
                         
                         delta_sig = -1*spins(i,j) - spins(i,j);
                         
-                        %___pick spin and flip right away___%
+                        %pick spin and flip right away
                         spins(i, j) = -1*spins(i,j);
                         
                         %sum_nn = (spins((i-1),j) + spins((i+1),j) +...
                         %    spins(i,(j-1)) + spins(i,(j+1)));
-                        
-                        sum_nn = sumNNN(spins, i, j);
+                        sum_nn = sumNNN(spins, i, j, weights);
                         
                         %spin_avg = mean(mean(spins));
-                        %spin_avg = 1;
+                        spin_avg = 1;
                         
-                        %___then do change in energy with correct sign___%
                         
+                        %then do change in energy with correct sign
                         %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-                        %dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2 - G*spin_avg));
-                        
-                        dE = delta_sig*(-1*J*sum_nn + longRange);
+                        dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2 - G*spin_avg));
                         
                         %E1 = spins(i,j)*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*spins(i,j);
                         %E2 = (-1*spins(i,j))*J*sum_nn - (big_delta/2 - k_b*T*ln_g/2)*(-1*spins(i,j));
                         %dE = E2 - E1;
                         
                         p = exp(-1*dE/T);
-                        
                         r = rand;
                         
                         if dE < 0 || p >= r
@@ -117,6 +115,8 @@ function [spins, E, nHS] = equilibrateSpins_H(...
                         %end
                         
                     end
+                    
+                    
                 end
             end
         end
@@ -134,7 +134,7 @@ function [spins, E, nHS] = equilibrateSpins_H(...
         
         
         
-        %%{
+        %{
     
     if mod(idx, frameRate) == 0
         pltTitle = strcat(num2str(N),'spins','_',num2str(T),'K_', num2str(idx));
@@ -146,10 +146,6 @@ function [spins, E, nHS] = equilibrateSpins_H(...
         if saveIntResults
             frame_name = strcat(dir_name,'\frames\',pltTitle,".png");
             saveas(gcf, frame_name)
-            
-            tmp1 = uint8(255.*((spins - min(spins(:)))./max(spins(:))));
-            imwrite(tmp1, strcat(dir_name, '\frames\',pltTitle,'img.png'));
-            
         end
     end
     
