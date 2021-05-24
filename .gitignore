@@ -136,3 +136,4 @@ MBP_results/
 .DS_Store
 *.m~
 *trialRuns/
+*.png
