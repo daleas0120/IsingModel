@@ -1,13 +1,13 @@
-function S = sumNNN(spins, i, j)
+function S = sumNNN(spins, i, j, weights)
 %{
 
 %}
 
 [m, n] = size(spins);
 
-sNN_wt = 1;
-sNNN_wt = 0;
-sNNNN_wt = 0;
+sNN_wt = weights(1);
+sNNN_wt = weights(2);
+sNNNN_wt = weights(3);
 
 sNN = spins(i, j+1)+...
     spins(i+1, j)+...
@@ -19,11 +19,12 @@ sNNN = spins(i+1, j+1) +...
     spins(i+1, j-1)+...
     spins(i-1, j-1);
 
+
 if i>2 && i<m-2 && j>2 && j<n-2
     sNNNN = spins(i-2, j)+...
         spins(i+2, j)+...
         spins(i, j-2)+...
-        spins(i, j+2);
+        spins(i, j+2);  
 else
     sNNNN = 0;
 end
