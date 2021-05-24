@@ -6,16 +6,18 @@
 %%
 tic
 clear;
-bd = 2450;
+bd = 3000.5;
 k_b = 8.617333262*10^-5;%eV/K
 weights = [1 0.7071 0.5];
-L = [302];
+%L = [302];
+L = [77];
 D = 11;
 
-substrateImg = 'C:\Users\daleas\Documents\GitHub\IsingModel\Matlab\210428_1trialRuns\210428a__502spins\frames\502spins_1.7437K_5img.png';
-substrateWeight = 0.5;
+%substrateImg = 'C:\Users\daleas\Documents\GitHub\IsingModel\Matlab\210428_1trialRuns\210428a__502spins\frames\502spins_1.7437K_5img.png';
+substrateImg = 'D:\IsingModel\IsingModel\substrates\502spins_1.7437K_275img.png';
+substrateWeight = 0.3;
 
-J_K = 47.5;%
+J_K = 60;%
 T_K = 297;
 big_delta_K = bd;%K
 ln_g = 83.9/8.31;
@@ -45,8 +47,8 @@ G = (k_b*G)/J_ev;
 T_inv = (J_ev.*T_K)./k_b;
 
 %%
-evo = 2e2; %number of MC steps to let the system burn in; this is discarded
-dataPts = 2.5e1; %number of MC steps to evaluate the system
+evo = 0; %number of MC steps to let the system burn in; this is discarded
+dataPts = 10e1; %number of MC steps to evaluate the system
 frameRate = 1; % provides a modulus to save snapshot of system
 numTrials = 1; %number of times to repeat the experiment
 
@@ -141,7 +143,7 @@ for temp = 1:length(k)
     
     %take data
     fprintf("Taking Data\n")
-    [spins, E(p, temp, numSpins), nHS(temp, :)] = ...
+    [spins, E, nHS(temp, :)] = ...
         equilibrateSpins_3D(...
         dataPts, spins, k(temp), T(temp), omega, weights, J, ...
         big_delta, ln_g, listLS, ...
