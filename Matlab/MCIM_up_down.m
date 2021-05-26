@@ -9,7 +9,7 @@ tic
 bd = 3000.5;
 %L = [209, 311];
 %L = [1002, 1002];
-L = [302, 302];
+L = [42, 42];
 %weights = [1, 0.5, 0.25];
 weights = [1, 0.7071, 0.5];
 %weights = [1, 0, 0];
@@ -104,7 +104,7 @@ n_HS1 = zeros(1, length(k1));
 n_HS2 = zeros(1, length(k2));
 
 %%
-for p = 1:numTrials
+for p = 2:numTrials
     
     if numTrials>1 || ~saveIntResults
         % save all trials in a single directory at highest level
@@ -138,8 +138,8 @@ for p = 1:numTrials
             dir_name = "";
         end
         %initialize 2D lattice
-        [spins, locked] = initializeLattice(N, M, boundCond1, pLS1, pHS1); %randomly initializes 2D lattice
-        
+        [spins, locked] = initializeLattice_noPad(N, M, pLS1, pHS1); %randomly initializes 2D lattice
+        %[spins, locked] = initializeLattice(N, M, boundCond1, pLS1, pHS1); %randomly initializes 2D lattice
         %spins = initializeLSlattice(N, M, boundCond1); %initialize lattice in entirely LS state
         origSpins = spins;
         
@@ -159,7 +159,11 @@ for p = 1:numTrials
             %let state reach equilibrium
             X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv1(temp));
             disp(X)
-            [spins, ~, ~] = equilibrateSpins_H(...
+            %             [spins, ~, ~] = equilibrateSpins_H(...
+            %                 evo, spins, k1(temp), T1(temp), weights, H1, J1,...
+            %                 big_delta1, ln_g1, G1, locked,...
+            %                 frameRate, dir_name, saveIntResults);
+            [spins, ~, ~] = equilibrateSpins_periodic(...
                 evo, spins, k1(temp), T1(temp), weights, H1, J1,...
                 big_delta1, ln_g1, G1, locked,...
                 frameRate, dir_name, saveIntResults);
@@ -171,11 +175,18 @@ for p = 1:numTrials
             %    dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
             %    big_delta1, ln_g1, G1, listLS, ...
             %    frameRate, dir_name, saveIntResults);
+%             [spins, E(p, temp, numSpins), n_HS1] = ...
+%                 equilibrateSpins_H(...
+%                 dataPts, spins, k1(temp), T1(temp), weights, H1, J1, ...
+%                 big_delta1, ln_g1, G1, locked, ...
+%                 frameRate, dir_name, saveIntResults);
+            
             [spins, E(p, temp, numSpins), n_HS1] = ...
-                equilibrateSpins_H(...
+                equilibrateSpins_periodic(...
                 dataPts, spins, k1(temp), T1(temp), weights, H1, J1, ...
                 big_delta1, ln_g1, G1, locked, ...
                 frameRate, dir_name, saveIntResults);
+            
             
             close;
             toc
@@ -190,7 +201,7 @@ for p = 1:numTrials
         
         nHS = n_HSfrac(spins)
         
-        rSpins = reduceLattice(spins, 9);
+        rSpins = reduceLattice_periodic(spins, 9);
         subplot(2,2,2)
         imagesc(rSpins)
         axis square
@@ -208,18 +219,18 @@ for p = 1:numTrials
         grid on
         grid minor
         
-        save(gcf, strcat('grid_', num2str(p), '.png'));
+        saveas(gcf, strcat('grid_', num2str(p), '.png'));
         
         imgName = strcat(dat_str0,'_J',J_nom1, 'K_T', num2str(T1(temp)),'K_',...
             num2str(weights(1)), '_', num2str(weights(2)), '_', num2str(weights(3)),...
             '_S',num2str(S1));
         
-        saveSpinsImg(spins, strcat(imgName, num2str(p), '_OG.png'))
-        saveSpinsImg(rSpins, strcat(imgName, num2str(p),  '_squeeze6.png'))
-        saveSpinsImg(imresize(rSpins, [1043 1025]), strcat(imgName, num2str(p), '_squeeze9LG.png'))
+        saveSpinsImg(spins, strcat(imgName,'_', num2str(p), '_OG.png'))
+        saveSpinsImg(rSpins, strcat(imgName,'_', num2str(p),  '_squeeze9.png'))
+        saveSpinsImg(imresize(rSpins, [1043 1025]), strcat(imgName,'_', num2str(p), '_squeeze9LG.png'))
         
-        saveSpinImg(rspins, strcat(imgName, num2str(p),  'v1.png'));
-        saveSpinImg(imresize(rSpins, [1043 1025]), num2str(p),  strcat(imgName, 'v2.png'));
+        saveSpinImg(rSpins, strcat(imgName,'_', num2str(p),  'v1.png'));
+        saveSpinImg(imresize(rSpins, [1043 1025]), strcat(imgName,'_', num2str(p),'v2.png'));
         
         %%
         %MCIM_2D_coolDown()
