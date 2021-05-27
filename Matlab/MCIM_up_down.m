@@ -9,14 +9,15 @@ tic
 bd = 3000.5;
 %L = [209, 311];
 %L = [1002, 1002];
-L = [42, 42];
+L = [72, 72];
 %weights = [1, 0.5, 0.25];
-weights = [1, 0.7071, 0.5];
-%weights = [1, 0, 0];
-
+%weights = [1, 0.7071, 0.5];
+weights = [1, 0, 0];
+%weights = [1 1 1];
 %% Way UP (LS to HS)
 J1 = 48.5;%
-T1 = 297;%K
+%T1 = 297;%K
+T1 = [100:10:400];
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
 S1 = 83.9;
@@ -29,11 +30,11 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = 1;%
-T2 = 170;%K
+J2 = J1;%
+T2 = [400:-10:100];%K
 big_delta2 = bd;%K
 %ln_g2 = 47.4/8.31;
-ln_g2 = 49.8/8.31; %ratio of degeneracy HS to LS
+ln_g2 = ln_g1; %ratio of degeneracy HS to LS
 G2 = 0;%K
 H2 = 0; %external magnetic field
 
@@ -42,9 +43,9 @@ pHS2 = 0; %percentage of interior spins locked in HS
 boundCond2 = (0); %boundary condition
 
 %%
-evo = 0; %number of MC steps to let the system burn in; this is discarded
-dataPts = 2000; %number of MC steps to evaluate the system
-numTrials = 9; %number of times to repeat the experiment
+evo = 1000; %number of MC steps to let the system burn in; this is discarded
+dataPts = 1000; %number of MC steps to evaluate the system
+numTrials = 1; %number of times to repeat the experiment
 frameRate = 310001; % provides a modulus to save snapshot of system
 
 %% DIMENSIONLESS UNITS (Formatting for program)
@@ -100,11 +101,11 @@ Snn = zeros(1, length(k1));
 B = zeros(1, length(k1));
 
 %Spin fraction output variables
-n_HS1 = zeros(1, length(k1));
-n_HS2 = zeros(1, length(k2));
+n_HS1 = zeros(dataPts, length(k1));
+n_HS2 = zeros(dataPts, length(k2));
 
 %%
-for p = 2:numTrials
+for p = 1:numTrials
     
     if numTrials>1 || ~saveIntResults
         % save all trials in a single directory at highest level
@@ -153,16 +154,13 @@ for p = 2:numTrials
         figure;
         %%
         for temp = 1:length(k1)
+            
             %copy spins for later comparison
             spins_last = spins;
             
             %let state reach equilibrium
             X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv1(temp));
             disp(X)
-            %             [spins, ~, ~] = equilibrateSpins_H(...
-            %                 evo, spins, k1(temp), T1(temp), weights, H1, J1,...
-            %                 big_delta1, ln_g1, G1, locked,...
-            %                 frameRate, dir_name, saveIntResults);
             [spins, ~, ~] = equilibrateSpins_periodic(...
                 evo, spins, k1(temp), T1(temp), weights, H1, J1,...
                 big_delta1, ln_g1, G1, locked,...
@@ -170,70 +168,62 @@ for p = 2:numTrials
             
             %take data
             fprintf("Taking Data\n")
-            %[spins, E(p, temp, numSpins), n_HS1(p, temp, numSpins)] = ...
-            %    equilibrateSpins_H(...
-            %    dataPts, spins, k1(temp), T1(temp), mu, H1, J1, ...
-            %    big_delta1, ln_g1, G1, listLS, ...
-            %    frameRate, dir_name, saveIntResults);
-%             [spins, E(p, temp, numSpins), n_HS1] = ...
-%                 equilibrateSpins_H(...
-%                 dataPts, spins, k1(temp), T1(temp), weights, H1, J1, ...
-%                 big_delta1, ln_g1, G1, locked, ...
-%                 frameRate, dir_name, saveIntResults);
             
-            [spins, E(p, temp, numSpins), n_HS1] = ...
+            [spins, E(p, temp, numSpins), n_HS1(:, temp)] = ...
                 equilibrateSpins_periodic(...
                 dataPts, spins, k1(temp), T1(temp), weights, H1, J1, ...
                 big_delta1, ln_g1, G1, locked, ...
                 frameRate, dir_name, saveIntResults);
             
-            
             close;
             toc
+            
+            rSpins = reduceLattice_periodic(spins, 9);
+            
+            imgName = strcat(trial_dir,'\',dat_str0,'_J',J_nom1, 'K_T', num2str(T_inv1(temp)),'K_',...
+                num2str(weights(1)), '_', num2str(weights(2)), '_', num2str(weights(3)),...
+                '_S',num2str(S1));
+            
+            saveSpinsImg(spins, strcat(imgName,'_', num2str(p), '_OGup.png'))
+            saveSpinsImg(rSpins, strcat(imgName,'_', num2str(p),  '_squeeze9up.png'))
+            saveSpinsImg(imresize(rSpins, [1043 1025]), strcat(imgName,'_', num2str(p), '_squeeze9LGup.png'))
+            
+            saveSpinImg(rSpins, strcat(imgName,'_', num2str(p),  'v1up.png'));
+            saveSpinImg(imresize(rSpins, [1043 1025]), strcat(imgName,'_', num2str(p),'v2up.png'));
+            
+            figure;
+            subplot(2,2,1)
+            imagesc(spins);
+            axis square
+            title('Binary Lattice')
+            caxis([-1 1])
+            
+            subplot(2,2,2)
+            imagesc(rSpins)
+            axis square
+            colorbar
+            title('Averaged Lattice')
+            caxis([-1 1])
+            
+            subplot(2,2,3)
+            histogram(rSpins)
+            title('Site Value Distribution')
+            
+            subplot(2,2,4)
+            plot(n_HS1)
+            title('nHS vs Time')
+            ylim([0 1])
+            grid on
+            grid minor
+            
+            saveas(gcf, strcat(imgName, 'grid_', num2str(p),'_',num2str(T_inv1(temp)), 'up.png'));
+            
         end
+
         %%
+        MCIM_2D_coolDown()
         
-        figure;
-        subplot(2,2,1)
-        imagesc(spins);
-        axis square
-        title('Binary Lattice')
         
-        nHS = n_HSfrac(spins)
-        
-        rSpins = reduceLattice_periodic(spins, 9);
-        subplot(2,2,2)
-        imagesc(rSpins)
-        axis square
-        colorbar
-        title('Averaged Lattice')
-        
-        subplot(2,2,3)
-        histogram(rSpins)
-        title('Site Value Distribution')
-        
-        subplot(2,2,4)
-        plot(n_HS1)
-        title('nHS vs Time')
-        ylim([0 1])
-        grid on
-        grid minor
-        
-        saveas(gcf, strcat('grid_', num2str(p), '.png'));
-        
-        imgName = strcat(dat_str0,'_J',J_nom1, 'K_T', num2str(T1(temp)),'K_',...
-            num2str(weights(1)), '_', num2str(weights(2)), '_', num2str(weights(3)),...
-            '_S',num2str(S1));
-        
-        saveSpinsImg(spins, strcat(imgName,'_', num2str(p), '_OG.png'))
-        saveSpinsImg(rSpins, strcat(imgName,'_', num2str(p),  '_squeeze9.png'))
-        saveSpinsImg(imresize(rSpins, [1043 1025]), strcat(imgName,'_', num2str(p), '_squeeze9LG.png'))
-        
-        saveSpinImg(rSpins, strcat(imgName,'_', num2str(p),  'v1.png'));
-        saveSpinImg(imresize(rSpins, [1043 1025]), strcat(imgName,'_', num2str(p),'v2.png'));
-        
-        %%
-        %MCIM_2D_coolDown()
     end
 end
 
@@ -285,13 +275,15 @@ else
     n_HS1 = squeeze(n_HS1);
     n_HS2 = squeeze(n_HS2);
     
+    n_HS1 = mean(n_HS1, 1);
+    n_HS2 = mean(n_HS2, 1);
+    
     nom = strcat(trial_dir,'\',dat_str0,'_',...
         'nHSvsT','_J',J_nom1,'K_D',bD_nom1,'K_pLS',num2str(pLS1),...
         '_pHS',num2str(pHS1),'_L',num2str(L));
     
     named = strcat(trial_dir,'\',dat_str0,'_',...
         'nHSvsT','_Jinc',J_nom1,'K_Jdec',J_nom2,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1),'_lngdec',num2str(ln_g2));
-    
     
     %figure
     %plot(T, E)
@@ -308,7 +300,6 @@ else
     axis([-inf inf 0 1.01])
     legend(legArr,'Location','southeast')
     hold off
-    
     
     saveas(gcf, strcat(named, '.png'))
     T_out = [T_inv1 T_inv2];
