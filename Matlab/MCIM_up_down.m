@@ -9,15 +9,15 @@ tic
 bd = 3000.5;
 %L = [209, 311];
 %L = [1002, 1002];
-L = [72, 72];
-%weights = [1, 0.5, 0.25];
-%weights = [1, 0.7071, 0.5];
-weights = [1, 0, 0];
-%weights = [1 1 1];
+L = [300, 300];
+weights = [1, 0.5, 0.25, 0.125];
+%weights = [1, 0.7071, 0.5, 0.4472];
+%weights = [1, 0, 0, 0];
+%weights = [1 1 1 1];
 %% Way UP (LS to HS)
-J1 = 48.5;%
-%T1 = 297;%K
-T1 = [100:10:400];
+J1 = 47.5;%
+T1 = 297;%K
+%T1 = [100:10:400];
 big_delta1 = bd;%K
 %ln_g1 = 44.7/8.31; %ratio of degeneracy HS to LS
 S1 = 83.9;
@@ -43,8 +43,8 @@ pHS2 = 0; %percentage of interior spins locked in HS
 boundCond2 = (0); %boundary condition
 
 %%
-evo = 1000; %number of MC steps to let the system burn in; this is discarded
-dataPts = 1000; %number of MC steps to evaluate the system
+evo = 0; %number of MC steps to let the system burn in; this is discarded
+dataPts = 5000; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 310001; % provides a modulus to save snapshot of system
 
@@ -180,7 +180,11 @@ for p = 1:numTrials
             
             rSpins = reduceLattice_periodic(spins, 9);
             
-            imgName = strcat(trial_dir,'\',dat_str0,'_J',J_nom1, 'K_T', num2str(T_inv1(temp)),'K_',...
+            %             imgName = strcat(trial_dir,'\',dat_str0,'_J',J_nom1, 'K_T', num2str(T_inv1(temp)),'K_',...
+            %                 num2str(weights(1)), '_', num2str(weights(2)), '_', num2str(weights(3)),...
+            %                 '_S',num2str(S1));
+            
+            imgName = strcat(dat_str0,'_J',J_nom1, 'K_T', num2str(T_inv1(temp)),'K_',...
                 num2str(weights(1)), '_', num2str(weights(2)), '_', num2str(weights(3)),...
                 '_S',num2str(S1));
             
@@ -219,9 +223,9 @@ for p = 1:numTrials
             saveas(gcf, strcat(imgName, 'grid_', num2str(p),'_',num2str(T_inv1(temp)), 'up.png'));
             
         end
-
+        
         %%
-        MCIM_2D_coolDown()
+        %MCIM_2D_coolDown()
         
         
     end

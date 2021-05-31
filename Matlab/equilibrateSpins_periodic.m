@@ -71,7 +71,7 @@ function [spins, E, nHS] = equilibrateSpins_H(...
                         %pick spin and flip right away
                         spins(i, j) = -1*spins(i,j);
 
-                        sum_nn = sumNNN(spins, i, j, weights, periodic);
+                        sum_nn = sumNNNN(spins, i, j, weights, periodic);
 
                         spin_avg = 1;
                         
