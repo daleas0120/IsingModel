@@ -1,5 +1,5 @@
-function [spins, E, nHS] = equilibrateSpins_H(...
-    time, spins, ~, T, weights, ~, J, big_delta, ln_g, G, listLS, ...
+function [spins, E, nHS] = equilibrateSpins_periodic(...
+    time, spins, T, weights, J, big_delta, ln_g, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
 %equilabrateSpins_H.m
@@ -33,8 +33,7 @@ function [spins, E, nHS] = equilibrateSpins_H(...
     set(0,'DefaultTextInterpreter','none');
     
     %k_b = 8.617333262*10^-5;%eV/K
-    
-    E = zeros(time, 1);
+
     %B = zeros(time, 1);
     nHS = zeros(time, 1);
     [N, M] = size(spins);
@@ -55,42 +54,35 @@ function [spins, E, nHS] = equilibrateSpins_H(...
             for col = 1:M
                 i = row;
                 j = col;
-                
-                if N > 2
+                tmp1 = find(listLS(:, 1) == row & listLS(:, 2) == col);
+
+                if  ~ isempty(tmp1)
+                    continue
+                else
+
+                    spinsLast = spins;
+
+                    delta_sig = -1*spins(i,j) - spins(i,j);
+
+                    %pick spin and flip right away
+                    spins(i, j) = -1*spins(i,j);
+
+                    sum_nn = sumNNNN(spins, i, j, weights, periodic);
+
+
+                    %then do change in energy with correct sign
+                    %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
+                    dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2));
+                    %dE = delta_sig*(-1*J*sum_nn);
                     
-                    tmp1 = find(listLS(:, 1) == row & listLS(:, 2) == col);
-                    
-                    if  ~ isempty(tmp1)
+                    p = exp(-1*dE/T);
+                    r = rand;
+
+                    if dE < 0 || p >= r
                         continue
                     else
-
-                        spinsLast = spins;
-                        
-                        delta_sig = -1*spins(i,j) - spins(i,j);
-                        
-                        %pick spin and flip right away
-                        spins(i, j) = -1*spins(i,j);
-
-                        sum_nn = sumNNNN(spins, i, j, weights, periodic);
-
-                        spin_avg = 1;
-                        
-                        
-                        %then do change in energy with correct sign
-                        %dE = 2*spins(i,j) * (J*sum_nn + H*mu);
-                        dE = delta_sig*(-1*J*sum_nn + (big_delta/2 - T*ln_g/2 - G*spin_avg));
-                        
-                        p = exp(-1*dE/T);
-                        r = rand;
-                        
-                        if dE < 0 || p >= r
-                            continue
-                        else
-                            spins(i,j) = -1*spins(i,j);
-                        end
-
-                    end
-                    
+                        spins(i,j) = -1*spins(i,j);
+                    end                   
                 end
             end
         end
@@ -102,11 +94,6 @@ function [spins, E, nHS] = equilibrateSpins_H(...
         %E(idx, 1) = -J*Snn;
         %B(idx, 1) = mu*sum_Si;
         nHS(idx, 1) = n_HSfrac(spins);
-        
-        %plot(nHS)
-        %pause(0.05);
-        
-        
         
         %{
     
