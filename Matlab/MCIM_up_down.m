@@ -10,15 +10,15 @@ bd = 3000.5;
 %L = [209, 311];
 %L = [1002, 1002];
 L = [300, 300];
-%weights = [1, 0.5, 0.25, 0.125];
+wts = [1, 0.7071, 0.5, 0, 0, 0];
 %weights = [1, 0.7071, 0.5, 0.4472];
-%wts = [1, 0.7071, 0.5, 0.4472, 0.3536, 0.3333];
-wts = [1, 0.5, 0.25, 0.125, 0.0625, 0.0313];
+%wts = [1, 0.7071, 0.5, 0.4472, 0.3536, 0.3333]; %linear
+%wts = [1, 0.5, 0.25, 0.125, 0.0625, 0.0313]; %quadratic
 %weights = [1, 0, 0, 0];
 %weights = [1 1 1 1];
 %wts = wts./sum(wts);
 %% Way UP (LS to HS)
-J1 = 50.5;%
+J1 = 107;%
 T1 = 297;%K
 %T1 = [100:10:400];
 big_delta1 = bd;%K
@@ -53,9 +53,8 @@ frameRate = 310001; % provides a modulus to save snapshot of system
 
 %% DIMENSIONLESS UNITS (Formatting for program)
 
-k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
-
+k_b = 8.61733326200000e-05; %eV/K
 bD_nom1 = num2str(big_delta1);
 J_nom1 = num2str(J1);
 
