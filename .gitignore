@@ -131,3 +131,5 @@ dmypy.json
 # Matlab
 *.asv
 *.mat
+
+*.png
