@@ -1,0 +1,9 @@
+function S = sumNN(spins, i, j)
+
+
+S = spins((i-1), j) +...
+    spins((i+1), j) +...
+    spins(i, (j-1)) +...
+    spins(i, (j+1));
+
+end
