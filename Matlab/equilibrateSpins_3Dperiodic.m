@@ -1,4 +1,4 @@
-function [spins, E, nHS] = equilibrateSpins_3D(...
+function [spins, E, nHS] = equilibrateSpins_3Dperiodic(...
     time, spins, ~, T, omega, weights, J, big_delta, ln_g, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
@@ -24,12 +24,6 @@ dir_name: where to save results
 saveIntResults: boolean to control writing of frame samples
 
     %}
-    f = waitbar(0,'1','Name','equilibrateSpins_H',...
-        'CreateCancelBtn','setappdata(gcbf,''canceling'',Annealing)');
-    
-    setappdata(f, 'canceling', 0);
-    
-    
     
     set(0,'DefaultTextInterpreter','none')
     %omega = 0.001;
@@ -41,22 +35,14 @@ saveIntResults: boolean to control writing of frame samples
     %% some optimization
     
     longRange = omega*(big_delta - T*ln_g)/2;
-    periodic = true;
+    
     %%
     
     for idx = 1:time% how many times to let the system evolve
-        
-        waitbar(idx/time, f)
-        
         if N > 2
             for xAxis = 2:N-1
                 for yAxis = 2:N-1
                     for zAxis = 2:D-1
-                        
-                        if getappdata(f, 'canceling')
-                            break
-                        end
-                        
                         i = xAxis;
                         j = yAxis;
                         k = zAxis;
@@ -67,13 +53,13 @@ saveIntResults: boolean to control writing of frame samples
                         if ~bool
                             continue
                         else
-                            
+                        
                             delta_sig = -1*spins(i, j, k) - spins(i, j, k);
                             
                             spins(i, j, k) = -1*spins(i, j, k);
                             
-                            sum_nn = sumNNN3D(spins, i, j, k, weights, periodic);
-                            
+                            sum_nn = sumNNN3D(spins, i, j, k, weights);
+                        
                             dE = delta_sig*(-1*J*sum_nn + longRange);
                             
                             p = exp(-1*dE/T);
@@ -83,14 +69,14 @@ saveIntResults: boolean to control writing of frame samples
                             else
                                 spins(i,j,k) = -1*spins(i,j,k);
                             end
-                            
+
                         end
                     end
                 end
             end
         end
         %%
-        
+
         nHS(idx, 1) = n_HSfrac3D(spins);
         H(idx, 1) = magnetism(spins(2:N-1, 2:N-1, 2:D-1));
         
@@ -138,5 +124,4 @@ saveIntResults: boolean to control writing of frame samples
         %%}
     end
     E = 0;
-    delete(f);
 end

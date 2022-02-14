@@ -6,18 +6,21 @@
 %%
 tic
 clear;
+
+ROOT_DIR = 'C:\Users\daleas\OneDrive - Indiana University\LD06517_MCIMS_results';
+
 bd = 3000.5;
 k_b = 8.617333262*10^-5;%eV/K
-weights = [1 0.7071 0.5];
+weights = [1 0.7071 0.5 0];
 %L = [302];
-L = [77];
+L = [300];
 D = 11;
 
 %substrateImg = 'C:\Users\daleas\Documents\GitHub\IsingModel\Matlab\210428_1trialRuns\210428a__502spins\frames\502spins_1.7437K_5img.png';
-substrateImg = 'D:\IsingModel\IsingModel\substrates\502spins_1.7437K_275img.png';
-substrateWeight = 0.3;
+substrateImg = 'C:\Users\daleas\Documents\substrates\210427_1trialRunsflattenSpins.png';
+substrateWeight = 1;
 
-J_K = 60;%
+J_K = 20;%
 T_K = 297;
 big_delta_K = bd;%K
 ln_g = 83.9/8.31;
@@ -48,12 +51,12 @@ T_inv = (J_ev.*T_K)./k_b;
 
 %%
 evo = 0; %number of MC steps to let the system burn in; this is discarded
-dataPts = 10e1; %number of MC steps to evaluate the system
-frameRate = 1; % provides a modulus to save snapshot of system
+dataPts = 10e2; %number of MC steps to evaluate the system
+frameRate = 1e9+1; % provides a modulus to save snapshot of system
 numTrials = 1; %number of times to repeat the experiment
 
 % save intermediate results:
-saveIntResults = true;
+saveIntResults = false;
 
 %Energy output variables
 E = zeros(1, length(T_K));
@@ -84,20 +87,20 @@ else
     % no group directory required
     trial_dir = '..';
 end
+%%
+
 %results folder for this particular data run
-if saveIntResults
-    t = datetime('now');
-    t.Format = "yyMMddhhmm";
-    dat_str = string(t);
-    dir_name = strcat(trial_dir,'/',dat_str,'_',num2str(L(1)),'spins3D');
-    mkdir(dir_name)
-    mkdir(dir_name,'frames')
-    mkdir(dir_name,'png')
-    mkdir(dir_name,'fig')
-    mkdir(dir_name,'txt')
-else
-    dir_name = "";
-end
+
+t = datetime('now');
+t.Format = "yyMMddhhmm";
+dat_str = string(t);
+dir_name = strcat(trial_dir,'/',dat_str,'_',num2str(L(1)),'spins3D');
+mkdir(dir_name)
+mkdir(dir_name,'frames')
+mkdir(dir_name,'png')
+mkdir(dir_name,'fig')
+mkdir(dir_name,'txt')
+
 
 %% initialize 3D lattice
 N = L(1);
@@ -150,6 +153,8 @@ for temp = 1:length(k)
         frameRate, dir_name, 'false');
     
     close;
+    %%
+    
     %%{
     rootName = strcat(dat_str, num2str(N),...
         'spins_k_', num2str(T_K(temp)), 'K');
@@ -221,28 +226,28 @@ else
     
     plt_title = 'High Spin Fraction vs Temperature';
     
-    figure
-    plot(T_K', nHSmean, '.-c')
-    hold on
-    title({plt_title},'Interpreter', 'tex', 'Color', 'white')
-    xlabel("Temperature T (K)")
-    ylabel({'n_H_S'},'Interpreter','tex')
-    %legend(legArr,'Location','southeast')
-    axis([-inf inf 0 1.0])
-    set(gca, 'Color', APSslideColor)
-    %set(gca, 'XColor', [0, 0, 0])
-    %set(gca, 'YColor', [0, 0, 0])
-    grid on
-    hold off
-    set(gcf, 'InvertHardcopy', 'off')
-    
-    imgHSvTemp = strcat(dir_name,'/',dat_str,'_',...
-        'delt',bD_nom,'_J',J_nom,'_nHSvsT');
-    
-    saveas(gcf, strcat(imgHSvTemp,'.png'))
-    saveas(gcf, strcat(imgHSvTemp,'.fig'))
-    
-    writematrix([T_K' nHSmean], strcat(imgHSvTemp,'.txt'));
+    %     figure
+    %     plot(T_K', nHSmean, '.-c')
+    %     hold on
+    %     title({plt_title},'Interpreter', 'tex', 'Color', 'white')
+    %     xlabel("Temperature T (K)")
+    %     ylabel({'n_H_S'},'Interpreter','tex')
+    %     %legend(legArr,'Location','southeast')
+    %     axis([-inf inf 0 1.0])
+    %     set(gca, 'Color', APSslideColor)
+    %     %set(gca, 'XColor', [0, 0, 0])
+    %     %set(gca, 'YColor', [0, 0, 0])
+    %     grid on
+    %     hold off
+    %     set(gcf, 'InvertHardcopy', 'off')
+    %
+    %     imgHSvTemp = strcat(dir_name,'/',dat_str,'_',...
+    %         'delt',bD_nom,'_J',J_nom,'_nHSvsT');
+    %
+    %     saveas(gcf, strcat(imgHSvTemp,'.png'))
+    %     saveas(gcf, strcat(imgHSvTemp,'.fig'))
+    %
+    %     writematrix([T_K' nHSmean], strcat(imgHSvTemp,'.txt'));
     
     %%
     %Plot nHS vs steps
@@ -272,29 +277,37 @@ else
     
     %%
     % Plot nHS evolution
-    plt_title = 'Spin High Fraction vs Time';
-    figure
-    hold on
-    for idx = 1:length(T)
-        plot(1:evo, nHS_evo(idx, :), '.-c')
-    end
-    set(gca, 'Color', APSslideColor)
-    %set(gca, 'XColor', [1, 1, 1])
-    %set(gca, 'YColor', [1, 1, 1])
-    grid on
-    ylabel({'n_H_S'},'Interpreter','tex')
-    xlabel("Time (MCIMS Step)")
-    title({plt_title}, 'Color', 'white')
-    set(gcf, 'InvertHardcopy', 'off')
-    saveas(gcf, strcat(dir_name,'/',dat_str,'timeEvo_',...
-        'delt',bD_nom,'_J',J_nom,'_nHSvsT.png'))
-    saveas(gcf, strcat(dir_name,'/',dat_str,'timeEvo_',...
-        'delt',bD_nom,'_J',J_nom,'_nHSvsT.fig'))
-    
-    writematrix([(1:dataPts)' nHS(idx,:)'], strcat(dir_name,'/',dat_str,'timeEvo_',...
-        'delt',bD_nom,'_J',J_nom,'_nHSvsTime','.txt'));
+    %     plt_title = 'Spin High Fraction vs Time';
+    %     figure
+    %     hold on
+    %     for idx = 1:length(T)
+    %         plot(1:evo, nHS_evo(idx, :), '.-c')
+    %     end
+    %     set(gca, 'Color', APSslideColor)
+    %     %set(gca, 'XColor', [1, 1, 1])
+    %     %set(gca, 'YColor', [1, 1, 1])
+    %     grid on
+    %     ylabel({'n_H_S'},'Interpreter','tex')
+    %     xlabel("Time (MCIMS Step)")
+    %     title({plt_title}, 'Color', 'white')
+    %     set(gcf, 'InvertHardcopy', 'off')
+    %     saveas(gcf, strcat(dir_name,'/',dat_str,'timeEvo_',...
+    %         'delt',bD_nom,'_J',J_nom,'_nHSvsT.png'))
+    %     saveas(gcf, strcat(dir_name,'/',dat_str,'timeEvo_',...
+    %         'delt',bD_nom,'_J',J_nom,'_nHSvsT.fig'))
+    %
+    %     writematrix([(1:dataPts)' nHS(idx,:)'], strcat(dir_name,'/',dat_str,'timeEvo_',...
+    %         'delt',bD_nom,'_J',J_nom,'_nHSvsTime','.txt'));
     
 end
+%%
+sliceSpins(spins)
+sliceImgName = strcat(dir_name,'/',dat_str,'slices',...
+    'delt',bD_nom,'_J',J_nom);
+saveas(gcf, strcat(sliceImgName, '.png'));
+%%
+dataSetName = strcat(dir_name, '/', dat_str, '_DATA.mat');
+save(dataSetName)
 
 function legArr = makeLegend(L,D)
 %returns a legend given an array of lattice sizes
@@ -302,4 +315,24 @@ legArr = cell(max(size(L)),1);
 for idx = 1:max(size(L))
     legArr{idx} = strcat(num2str(L(idx)),'x',num2str(L(idx)),'x',num2str(D),' spins');
 end
+end
+
+function sliceSpins(spins)
+
+[M, N, P] = size(spins);
+
+numRows = floor(sqrt(P));
+numCols = ceil(P/numRows);
+
+figure;
+hold on
+
+for idx = 1:P
+    subplot(numRows, numCols, idx)
+    imagesc(spins(:, :, idx))
+    axis square
+    xticklabels([])
+    yticklabels([])
+end
+
 end

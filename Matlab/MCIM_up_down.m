@@ -3,6 +3,8 @@
 % Calls the following matlab files: initializeLattice.m,
 % equilibrateSpins_H.m
 
+%Used for Guanhua's PEEM paper
+
 %%
 tic
 %clear;

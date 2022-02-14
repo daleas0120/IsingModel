@@ -35,10 +35,10 @@ end
 
 for kdx = 3:(D - 2)
     
-    spins = rand(N-2); %decide how many ones there are
+    spins = rand(N); %decide how many ones there are
     
-    for idx = 1:(N-2)
-        for jdx = 1:(N-2)
+    for idx = 1:(N)
+        for jdx = 1:(N)
             
             if (spins(idx, jdx) > 0.5)
                 
@@ -60,7 +60,7 @@ for kdx = 3:(D - 2)
         end
     end
     
-    spins = padarray(spins,[1 1],b,'both');
+    %spins = padarray(spins,[1 1],b,'both');
     spinD = cat(3,spinD, spins);
 end
 

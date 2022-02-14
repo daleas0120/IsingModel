@@ -17,6 +17,18 @@ sNNNNN_wt = weights(4);
 %Y r j k l s
 %Z - t m u -
 
+% (i-2) --> V
+% (i-1) --> W
+% (i-0) --> X
+% (i+1) --> Y
+% (i+2) --> Z
+
+% (j-2) --> A
+% (j-1) --> B
+% (j-0) --> C
+% (j+1) --> D
+% (j+2) --> E
+
 
 if periodic
     
