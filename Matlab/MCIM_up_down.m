@@ -12,12 +12,15 @@ bd = 3000.5;
 %L = [209, 311];
 %L = [1002, 1002];
 L = [300, 300];
-weights = [1, 0.5, 0.25, 0.125];
+wts = [1, 0.7071, 0.5, 0, 0, 0];
 %weights = [1, 0.7071, 0.5, 0.4472];
+%wts = [1, 0.7071, 0.5, 0.4472, 0.3536, 0.3333]; %linear
+%wts = [1, 0.5, 0.25, 0.125, 0.0625, 0.0313]; %quadratic
 %weights = [1, 0, 0, 0];
 %weights = [1 1 1 1];
+%wts = wts./sum(wts);
 %% Way UP (LS to HS)
-J1 = 47.5;%
+J1 = 107;%
 T1 = 297;%K
 %T1 = [100:10:400];
 big_delta1 = bd;%K
@@ -32,29 +35,28 @@ pHS1 = 0; %percentage of interior spins locked in HS
 boundCond1 = (0); %boundary condition
 
 %% WAY DOWN (HS to LS)
-J2 = J1;%
-T2 = [400:-10:100];%K
-big_delta2 = bd;%K
-%ln_g2 = 47.4/8.31;
-ln_g2 = ln_g1; %ratio of degeneracy HS to LS
-G2 = 0;%K
-H2 = 0; %external magnetic field
-
-pLS2 = 0; %percentage of interior spins locked in LS
-pHS2 = 0; %percentage of interior spins locked in HS
-boundCond2 = (0); %boundary condition
+% J2 = J1;%
+% T2 = [400:-10:100];%K
+% big_delta2 = bd;%K
+% %ln_g2 = 47.4/8.31;
+% ln_g2 = ln_g1; %ratio of degeneracy HS to LS
+% G2 = 0;%K
+% H2 = 0; %external magnetic field
+% 
+% pLS2 = 0; %percentage of interior spins locked in LS
+% pHS2 = 0; %percentage of interior spins locked in HS
+% boundCond2 = (0); %boundary condition
 
 %%
 evo = 0; %number of MC steps to let the system burn in; this is discarded
-dataPts = 5000; %number of MC steps to evaluate the system
+dataPts = 750; %number of MC steps to evaluate the system
 numTrials = 1; %number of times to repeat the experiment
 frameRate = 310001; % provides a modulus to save snapshot of system
 
 %% DIMENSIONLESS UNITS (Formatting for program)
 
-k_b = 8.617333262*10^-5;%eV/K
 mu = 1; %atomic magnetic moment
-
+k_b = 8.61733326200000e-05; %eV/K
 bD_nom1 = num2str(big_delta1);
 J_nom1 = num2str(J1);
 
@@ -65,27 +67,33 @@ G_ev1 = G1*k_b;
 
 k1 = J_ev1./(k_b.*T1); % dimensionless inverse temperature
 
+% These are the values that actually get passed in
 big_delta1 = (k_b*big_delta1)/abs(J_ev1);
 T1 = (k_b.*T1)./abs(J_ev1);
 J1 = J_ev1/abs(J_ev1);
 G1 = G_ev1/abs(J_ev1);
 T_inv1 = (abs(J_ev1).*T1)./k_b;
 
-bD_nom2 = num2str(big_delta2);
-J_nom2 = num2str(J2);
+bD_Tnorm = bd./T1;
+J_Tnorm = J1./T1;
 
-J_ev2 = J2*k_b; %coupling constant/exchange energy in eV
-T_ev2 = T2.*k_b;
-bD_ev2 = big_delta2*k_b;
-G_ev2 = G2*k_b;
+%%
 
-k2 = J_ev2./(k_b.*T2); % dimensionless inverse temperature
-
-big_delta2 = (k_b*big_delta2)/abs(J_ev2);
-T2 = (k_b.*T2)./abs(J_ev2);
-J2 = J_ev2/abs(J_ev2);
-G2 = G_ev2/abs(J_ev2);
-T_inv2 = (abs(J_ev2).*T2)./k_b;
+% bD_nom2 = num2str(big_delta2);
+% J_nom2 = num2str(J2);
+% 
+% J_ev2 = J2*k_b; %coupling constant/exchange energy in eV
+% T_ev2 = T2.*k_b;
+% bD_ev2 = big_delta2*k_b;
+% G_ev2 = G2*k_b;
+% 
+% k2 = J_ev2./(k_b.*T2); % dimensionless inverse temperature
+% 
+% big_delta2 = (k_b*big_delta2)/abs(J_ev2);
+% T2 = (k_b.*T2)./abs(J_ev2);
+% J2 = J_ev2/abs(J_ev2);
+% G2 = G_ev2/abs(J_ev2);
+% T_inv2 = (abs(J_ev2).*T2)./k_b;
 
 % naming system for the files and folders holding data from repeated trials
 p_name = {'a_', 'b_', 'c_', 'd_', 'e_', 'f_', 'g_', 'h_', 'i_', 'j_', 'k_',...
@@ -104,7 +112,7 @@ B = zeros(1, length(k1));
 
 %Spin fraction output variables
 n_HS1 = zeros(dataPts, length(k1));
-n_HS2 = zeros(dataPts, length(k2));
+%n_HS2 = zeros(dataPts, length(k2));
 
 %%
 for p = 1:numTrials
@@ -164,8 +172,8 @@ for p = 1:numTrials
             X = sprintf('Cooling %d x %d spins to temp %f ....',N, N, T_inv1(temp));
             disp(X)
             [spins, ~, ~] = equilibrateSpins_periodic(...
-                evo, spins, k1(temp), T1(temp), weights, H1, J1,...
-                big_delta1, ln_g1, G1, locked,...
+                evo, spins, T1(temp), wts, J1,...
+                big_delta1, ln_g1, locked,...
                 frameRate, dir_name, saveIntResults);
             
             %take data
@@ -173,21 +181,18 @@ for p = 1:numTrials
             
             [spins, E(p, temp, numSpins), n_HS1(:, temp)] = ...
                 equilibrateSpins_periodic(...
-                dataPts, spins, k1(temp), T1(temp), weights, H1, J1, ...
-                big_delta1, ln_g1, G1, locked, ...
+                dataPts, spins, T1(temp), wts, J1, ...
+                big_delta1, ln_g1, locked, ...
                 frameRate, dir_name, saveIntResults);
             
             close;
             toc
-            
+            %%
             rSpins = reduceLattice_periodic(spins, 9);
             
-            %             imgName = strcat(trial_dir,'\',dat_str0,'_J',J_nom1, 'K_T', num2str(T_inv1(temp)),'K_',...
-            %                 num2str(weights(1)), '_', num2str(weights(2)), '_', num2str(weights(3)),...
-            %                 '_S',num2str(S1));
-            
             imgName = strcat(dat_str0,'_J',J_nom1, 'K_T', num2str(T_inv1(temp)),'K_',...
-                num2str(weights(1)), '_', num2str(weights(2)), '_', num2str(weights(3)),...
+                num2str(wts(1)), '_', num2str(wts(2)), '_', num2str(wts(3)),'_',...
+                num2str(wts(4)), '_', num2str(wts(5)), '_', num2str(wts(6)),...
                 '_S',num2str(S1));
             
             saveSpinsImg(spins, strcat(imgName,'_', num2str(p), '_OGup.png'))
@@ -196,7 +201,7 @@ for p = 1:numTrials
             
             saveSpinImg(rSpins, strcat(imgName,'_', num2str(p),  'v1up.png'));
             saveSpinImg(imresize(rSpins, [1043 1025]), strcat(imgName,'_', num2str(p),'v2up.png'));
-            
+            %%
             figure;
             subplot(2,2,1)
             imagesc(spins);
@@ -235,8 +240,8 @@ end
 
 %% PLOTTING
 
-legArr = {strcat("T Inc, J=",J_nom1, "K, ln(g)=",num2str(ln_g1)),...
-    strcat("T Dec, J=", J_nom2, "K, ln(g)=",num2str(ln_g2))};
+%legArr = {strcat("T Inc, J=",J_nom1, "K, ln(g)=",num2str(ln_g1)),...
+%    strcat("T Dec, J=", J_nom2, "K, ln(g)=",num2str(ln_g2))};
 %legArr = makeLegend(L);
 set(0,'DefaultTextInterpreter','none')
 
@@ -268,7 +273,7 @@ if numTrials > 1
     xlabel("Temperature T (K)")
     ylabel("n_H_S", 'Interpreter','tex')
     axis([-inf inf 0 1.01])
-    legend(legArr,'Location','southeast')
+    %legend(legArr,'Location','southeast')
     axis([-inf inf 0 1.0])
     hold off
     
@@ -279,17 +284,17 @@ if numTrials > 1
     writematrix([T_out nHS_out],strcat(named, '.txt'));
 else
     n_HS1 = squeeze(n_HS1);
-    n_HS2 = squeeze(n_HS2);
+    %n_HS2 = squeeze(n_HS2);
     
     n_HS1 = mean(n_HS1, 1);
-    n_HS2 = mean(n_HS2, 1);
+    %n_HS2 = mean(n_HS2, 1);
     
     nom = strcat(trial_dir,'\',dat_str0,'_',...
         'nHSvsT','_J',J_nom1,'K_D',bD_nom1,'K_pLS',num2str(pLS1),...
         '_pHS',num2str(pHS1),'_L',num2str(L));
     
     named = strcat(trial_dir,'\',dat_str0,'_',...
-        'nHSvsT','_Jinc',J_nom1,'K_Jdec',J_nom2,'K_D',bD_nom1,'K_lnginc',num2str(ln_g1),'_lngdec',num2str(ln_g2));
+        'nHSvsT','_Jinc',J_nom1,'K_','D',bD_nom1,'K_lnginc',num2str(ln_g1));
     
     %figure
     %plot(T, E)
@@ -298,7 +303,7 @@ else
     figure
     plot(T_inv1, n_HS1,'r.-')
     hold on
-    plot(T_inv2, n_HS2,'b.-')
+    %plot(T_inv2, n_HS2,'b.-')
     grid on
     title(plt_title, 'interpreter','tex')
     xlabel("Temperature T (K)")
