@@ -1,5 +1,6 @@
 function [spins, E, nHS] = equilibrateSpins_3D(...
-    time, spins, ~, T, omega, weights, J, big_delta, ln_g, listLS, ...
+    time, spins, ~, T, omega, mu, h_field, ...
+    weights, J, big_delta, ln_g, listLS, ...
     frameRate, dir_name, saveIntResults)
 %{
 equilabrateSpins_H.m
@@ -24,12 +25,10 @@ dir_name: where to save results
 saveIntResults: boolean to control writing of frame samples
 
     %}
-    f = waitbar(0,'1','Name','equilibrateSpins_H',...
-        'CreateCancelBtn','setappdata(gcbf,''canceling'',Annealing)');
+    f = waitbar(0,'1','Name','Annealing ...',...
+        'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
     
     setappdata(f, 'canceling', 0);
-    
-    
     
     set(0,'DefaultTextInterpreter','none')
     %omega = 0.001;
@@ -40,19 +39,18 @@ saveIntResults: boolean to control writing of frame samples
     
     %% some optimization
     
-    longRange = omega*(big_delta - T*ln_g)/2;
+    %longRange = omega*(big_delta/2 - T*ln_g/2 - mu*h_field);
+    longRange = omega*(-1*mu*h_field);
     periodic = true;
     %%
     
     for idx = 1:time% how many times to let the system evolve
-        
         waitbar(idx/time, f)
         
         if N > 2
             for xAxis = 2:N-1
                 for yAxis = 2:N-1
                     for zAxis = 2:D-1
-                        
                         if getappdata(f, 'canceling')
                             break
                         end
@@ -95,20 +93,20 @@ saveIntResults: boolean to control writing of frame samples
         H(idx, 1) = magnetism(spins(2:N-1, 2:N-1, 2:D-1));
         
         %%{
-        if (mod(idx, frameRate) == 0) & saveIntResults
+        if ((mod(idx, frameRate) == 0) && saveIntResults)
             
             pltTitle = strcat(num2str(N),'spins','_T=',num2str(T),'_', num2str(idx));
             [~] = spinVis(spins);
-            set(gca,'xticklabel',[])
-            set(gca,'yticklabel',[])
-            set(gca,'zticklabel',[])
-            set(gca,'xtick',[])
-            set(gca,'ytick',[])
-            set(gca,'ztick',[])
-            set(gca, 'Color', [34/255, 42/255, 53/255])
-            set(gcf, 'InvertHardcopy', 'off')
+            set(gca,'xticklabel',[]);
+            set(gca,'yticklabel',[]);
+            set(gca,'zticklabel',[]);
+            set(gca,'xtick',[]);
+            set(gca,'ytick',[]);
+            set(gca,'ztick',[]);
+            set(gca, 'Color', [34/255, 42/255, 53/255]);
+            set(gcf, 'InvertHardcopy', 'off');
             pause(0.05);
-            if saveIntResults
+            if saveIntResults == 1
                 frame_name = strcat(dir_name,'/frames/',pltTitle);
                 saveas(gcf, strcat(frame_name,".png"));
                 saveas(gcf, strcat(frame_name,".fig"));
@@ -118,16 +116,16 @@ saveIntResults: boolean to control writing of frame samples
             figure
             squeezeSpins = squeeze3D(spins);
             [~] = spinVis(squeezeSpins);
-            set(gca,'xticklabel',[])
-            set(gca,'yticklabel',[])
-            set(gca,'zticklabel',[])
-            set(gca,'xtick',[])
-            set(gca,'ytick',[])
-            set(gca,'ztick',[])
-            set(gca, 'Color', [34/255, 42/255, 53/255])
-            set(gcf, 'InvertHardcopy', 'off')
+            set(gca,'xticklabel',[]);
+            set(gca,'yticklabel',[]);
+            set(gca,'zticklabel',[]);
+            set(gca,'xtick',[]);
+            set(gca,'ytick',[]);
+            set(gca,'ztick',[]);
+            set(gca, 'Color', [34/255, 42/255, 53/255]);
+            set(gcf, 'InvertHardcopy', 'off');
             pause(0.05);
-            if saveIntResults
+            if saveIntResults == 1
                 frame_name = strcat(dir_name,'/frames/squeeze',pltTitle);
                 saveas(gcf, strcat(frame_name,".png"));
                 saveas(gcf, strcat(frame_name,".fig"));
@@ -138,5 +136,6 @@ saveIntResults: boolean to control writing of frame samples
         %%}
     end
     E = 0;
-    delete(f);
+    F = findall(0, 'type', 'figure', 'tag', 'TMWWaitbar');
+    delete(F);
 end

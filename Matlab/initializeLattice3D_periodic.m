@@ -1,55 +1,29 @@
-function [spinD, listLS] = initializeLattice3D_pin(parameter_struct)
+function [spinD, listLS] = initializeLattice3D_periodic(N,D,b,pLS,pHS)
 %{
 %initializeLattice3D.m
 %Ashley Dale
 %creates a randomly initialized NxN lattice
 
-N: number of spins along an edge
+N: number of edge spins
 D: number of stacked layers
 b: [1, 0 -1]; lock edge spins into HS, open boundary, or LS
+lock: determines if spin is to be locked in state lock
 pLS: probability spin is locked in LS state
 pHS: probability spin is locked in HS state
-pin: locks the first (pin) layers in some orientation
 %}
 
-N = parameter_struct.N;
-D = parameter_struct.D;
-b = parameter_struct.boundCond;
-pLS = parameter_struct.pLS;
-pHS = parameter_struct.pHS;
-pin = parameter_struct.numPinnedLayers;
-val = parameter_struct.pinningVal;
-
 spinD = b.*ones(N);
+%spinD = -1*ones(N);
 
 pt = 1;
 listLS(pt, :) = [0 0 0];
 
-%creates additional pinned layers
-for kdx = 1:pin
-    spins = val.*ones(N-2);
-    spins = padarray(spins, [1 1], b, 'both');
-    spinD = cat(3, spinD, spins);
+for kdx = 1:(D-2)
     
-    [cx, cy, cz] = ndgrid(2:N-1, 2:N-1, kdx+1);
-    X = cx(:);
-    Y = cy(:);
-    Z = cz(:);
+    spins = rand(N); %decide how many ones there are
     
-    pts = [X Y Z];
-    
-    listLS = [listLS; pts];
-    
-    %pt = pt + 1;
-    
-end
-
-for kdx = (pin+1):(D - 2)
-    
-    spins = rand(N-2); %decide how many ones there are
-    
-    for idx = 1:(N-2)
-        for jdx = 1:(N-2)
+    for idx = 1:(N)
+        for jdx = 1:(N)
             
             if (spins(idx, jdx) > 0.5)
                 
@@ -71,7 +45,6 @@ for kdx = (pin+1):(D - 2)
         end
     end
     
-    spins = padarray(spins,[1 1],b,'both');
     spinD = cat(3,spinD, spins);
 end
 

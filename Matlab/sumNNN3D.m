@@ -3,14 +3,14 @@ function S = sumNNN3D(spins, i, j, k, weights, periodic)
 
 %}
 
-[M, N, P] = size(spins);
+[M, N, ~] = size(spins);
 sNN_wt = weights(1);
 sNNN_wt = weights(2);
 sNNNN_wt = weights(3);
 
 if periodic
     
-    % set up for 2D only right now
+    % set up for 2D boundary conditions only right now
     V = mod(M+i-2, M);
     if V == 0
         V = M;

@@ -3,8 +3,14 @@ spinVis.m
 Ashley Dale
 Visualizes a spin lattice
 %}
-function leg = spinVis(spinD)
+function leg = spinVis(spinD, optionalVarChangeDefaultParam)
 [m, n, p] = size(spinD);
+
+if nargin > 1
+  alpha = optionalVarChangeDefaultParam;
+else
+  alpha = 1;
+end
 
 %Set colors
 spins = spinD;
@@ -147,21 +153,42 @@ else
     markerSize = 30;
 end
 % plot the items
-scatter3(hs_x, hs_y, hs_z, markerSize, color10)
-scatter3(bc_x, bc_y, bc_z, markerSize, color5)
+p1 = scatter3(hs_x, hs_y, hs_z, markerSize, color10);
+p1.MarkerEdgeAlpha = alpha;
+
+p2 = scatter3(bc_x, bc_y, bc_z, markerSize, color5);
+p2.MarkerEdgeAlpha = alpha;
+
 hold on
-scatter3(hs_x, hs_y, hs_z, markerSize, color10)
-scatter3(hs9_x, hs9_y, hs9_z, markerSize, color9)
-scatter3(hs8_x, hs8_y, hs8_z, markerSize, color8)
-scatter3(hs7_x, hs7_y, hs7_z, markerSize, color7)
-scatter3(hs6_x, hs6_y, hs6_z, markerSize, color6)
+p3 = scatter3(hs_x, hs_y, hs_z, markerSize, color10);
+p3.MarkerEdgeAlpha = alpha;
 
-scatter3(ls4_x, ls4_y, ls4_z, markerSize, color4)
-scatter3(ls3_x, ls3_y, ls3_z, markerSize, color3)
-scatter3(ls2_x, ls2_y, ls2_z, markerSize, color2)
-scatter3(ls1_x, ls1_y, ls1_z, markerSize, color1)
-scatter3(ls_x, ls_y, ls_z, markerSize, color0)
+p4 = scatter3(hs9_x, hs9_y, hs9_z, markerSize, color9);
+p4.MarkerEdgeAlpha = alpha;
 
+p5 = scatter3(hs8_x, hs8_y, hs8_z, markerSize, color8);
+p5.MarkerEdgeAlpha = alpha;
+
+p6 = scatter3(hs7_x, hs7_y, hs7_z, markerSize, color7);
+p6.MarkerEdgeAlpha = alpha;
+
+p7 = scatter3(hs6_x, hs6_y, hs6_z, markerSize, color6);
+p7.MarkerEdgeAlpha = alpha;
+
+p8 = scatter3(ls4_x, ls4_y, ls4_z, markerSize, color4);
+p8.MarkerEdgeAlpha = alpha;
+
+p9 = scatter3(ls3_x, ls3_y, ls3_z, markerSize, color3);
+p9.MarkerEdgeAlpha = alpha;
+
+p10 = scatter3(ls2_x, ls2_y, ls2_z, markerSize, color2);
+p10.MarkerEdgeAlpha = alpha;
+
+p11 = scatter3(ls1_x, ls1_y, ls1_z, markerSize, color1);
+p11.MarkerEdgeAlpha = alpha;
+
+p12 = scatter3(ls_x, ls_y, ls_z, markerSize, color0);
+p12.MarkerEdgeAlpha = alpha;
 grid on
 
 set(gcf, 'Position',[100, 100, 1250, 750])
